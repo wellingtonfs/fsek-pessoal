@@ -1,0 +1,28 @@
+git clone http://.......urldorepositorio.com/......./        #Usado para clonar um repositorio
+
+#se ja tiver clonado, digite:
+
+git pull   #atualiza o repositório...
+
+#depois é só colocar os arquivos na pasta clonada e dentro da pasta digitar pelo terminal..
+
+git add .    #Adicionar uma pasta
+
+git commit -m "mensagem da versao"   Usado para colocar uma mensagem na versão
+
+git push   #Usado para enviar ao repositório
+
+
+#----------
+
+#Criar uma ramificação de master
+
+git checkout -b nomedobagulho  #Cria uma ramificação...
+
+git add .
+
+git commit -m "mensagem"
+
+git push
+
+#depois, vá ao github e crie um pull request e crie um discução pra sua ramificação
