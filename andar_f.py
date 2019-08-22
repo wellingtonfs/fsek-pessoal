@@ -73,7 +73,7 @@ Estado = 0
 while True: #enquanto nao chegar, ajustar para parar quando chegar
     if Estado == 0:
         while True:
-            if ir.value() > 20:
+            if 20 < ir.value() < 100:
                 m1.run_to_rel_pos(position_sp=50, speed_sp=200)
                 m2.run_to_rel_pos(position_sp=50, speed_sp=200)
             else:
@@ -86,7 +86,7 @@ while True: #enquanto nao chegar, ajustar para parar quando chegar
                     m2.run_to_rel_pos(position_sp=250, speed_sp=200)
                 m1.stop(stop_action="brake")
                 m2.stop(stop_action="brake")
-                m3.run_to_rel_pos(position_sp=-300, speed_sp=200)
+                m3.run_to_rel_pos(position_sp=-210, speed_sp=100)
                 time.sleep(1)
                 break
         giraRobo(67, True)
@@ -123,15 +123,7 @@ while True: #enquanto nao chegar, ajustar para parar quando chegar
         aux = True
         while True:
             if 46 <= ir2.value() <= 60 and aux:
-                m1.stop(stop_action="brake")
-                m2.stop(stop_action="brake")
-                giraRobo(143, False)
-                m1.run_forever(speed_sp=-250)
-                m2.run_forever(speed_sp=-250)
-                time.sleep(7)
-                m1.stop(stop_action="brake")
-                m2.stop(stop_action="brake")
-                giraRobo(143, False)
+                time.sleep(6)
                 m3.run_to_rel_pos(position_sp=200, speed_sp=200)
                 time.sleep(2)
                 m1.run_forever(speed_sp=-250)
