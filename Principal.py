@@ -30,7 +30,7 @@ dif_temp = 0
 #------Inicio Funções:
 
 def giraRobo(graus, sentido): #True = Esquerda, False = Direita
-    razaoRobo = (2 * math.pi * 5.5) / (2 * math.pi * 2.71)
+    razaoRobo = (2 * math.pi * 5.5) / (2 * math.pi * 2.55)
     if sentido:
         m1.run_to_rel_pos(position_sp=-(razaoRobo*graus),speed_sp=180,stop_action="brake")
         m2.run_to_rel_pos(position_sp=(razaoRobo*graus),speed_sp=180,stop_action="brake")
@@ -75,7 +75,7 @@ def blakeLine(): #Walk the black line to learning colors.
     m1.run_to_rel_pos(position_sp=360, speed_sp=100)
     m2.run_to_rel_pos(position_sp=360, speed_sp=100)
     time.sleep(3)
-    giraRobo(90, False)
+    giraRobo(90, True)
     Leitura = [cor.value(), cor2.value()]
     Cor_Anterior = Leitura[0]
     while Leitura[0] != Leitura[1]: #contar o tempo para nao andar infinitamente
