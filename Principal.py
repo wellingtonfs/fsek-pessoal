@@ -30,7 +30,7 @@ dif_temp = 0
 #------Inicio Funções:
 
 def giraRobo(graus, sentido): #True = Esquerda, False = Direita
-    razaoRobo = (2 * math.pi * 5.5) / (2 * math.pi * 2.55)
+    razaoRobo = 5.5 / 3.0
     if sentido:
         m1.run_to_rel_pos(position_sp=-(razaoRobo*graus),speed_sp=180,stop_action="brake")
         m2.run_to_rel_pos(position_sp=(razaoRobo*graus),speed_sp=180,stop_action="brake")
