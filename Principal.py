@@ -13,12 +13,12 @@ m3 = MediumMotor('outB')
 cor = ColorSensor('in2')
 cor2 = ColorSensor('in4')
 ir = InfraredSensor('in3')
-#ir2 = InfraredSensor('in1')
+ir2 = InfraredSensor('in1')
 
 cor.mode = 'COL-COLOR'
 cor2.mode = 'COL-COLOR'
 ir.mode = 'IR-PROX'
-#ir2.mode = 'IR-PROX'
+ir2.mode = 'IR-PROX'
 
 Estado = 1 #0 = inicio, 1 = ...
 Pos_Cores = [[0,10],[0,15],[0,20]] #(x = 10), (y = 15), (z = 20)
@@ -30,7 +30,7 @@ dif_temp = 0
 
 #------Inicio Funções:
 
-def giraRobo(graus, sentido): #True = Esquerda, False = Direita
+def giraRobo(graus, sentido, tempo = 2): #True = Esquerda, False = Direita
     razaoRobo = 5.5 / 3.0
     if sentido:
         m1.run_to_rel_pos(position_sp=-(razaoRobo*graus),speed_sp=180,stop_action="brake")
@@ -38,7 +38,8 @@ def giraRobo(graus, sentido): #True = Esquerda, False = Direita
     else:
         m1.run_to_rel_pos(position_sp=(razaoRobo*graus),speed_sp=180,stop_action="brake")
         m2.run_to_rel_pos(position_sp=-(razaoRobo*graus),speed_sp=180,stop_action="brake")
-    time.sleep(2)
+    if tempo != 0:
+        time.sleep(tempo)
 
 def Emergencia():
     m1.stop(stop_action="brake")
@@ -111,7 +112,7 @@ def blakeLine(): #Walk the black line to learning colors.
         if (time.time() - variavel_tempo) > 0.5:
             print("ir: %d" %ir.value())
             variavel_tempo = time.time()
-        if 50 <= ir.value() <= 80:
+        if 30 <= ir.value() <= 99:
             giraRobo(180, True)
             if x == -1:
                 x = Cor_Anterior
@@ -140,6 +141,7 @@ def Mov_Garra(Sentido): #0 = descer; 1 = subir;
         m3.run_to_rel_pos(position_sp=-250, speed_sp=200)
     time.sleep(2)
 
+'''
 def Intervalos(Intervalo): #Saber se o intervalo ta crescendo, decrescendo ou os dois
     c, d = 0, 0 #crescer / decrescer
     for i in range(1, len(Intervalo), 1):
@@ -159,11 +161,192 @@ def Intervalos(Intervalo): #Saber se o intervalo ta crescendo, decrescendo ou os
         return "Eq" #dobrar para esquerda
     else:
         return False
+'''
+
+def Modulo(x):
+    if x < 0:
+        return x * -1
+    return x 
+
+def LeituraIR(QIr): #fazer ele "vibrar" para não ler sempre a mesma coisa
+    if QIr == 1:
+        leitura = ir.value()
+        while leitura > 99:
+            leitura = ir.value()
+        return leitura
+    else:
+        leitura = ir2.value()
+        while leitura > 99:
+            leitura = ir2.value()
+        return leitura
 
 def AchouCano():
-    cont = 0
+    Estado_Local = 0
+    Medidas = [0, 0, False] #inicio cano, fim cano, caso tenho mudado o fim do cano
+    while True:
+        if Estado_Local == 0:
+            while LeituraIR(2) <= 50:
+                m1.run_forever(speed_sp=-70)
+                m2.run_forever(speed_sp=70)
+            
+            m1.stop(stop_action="brake")
+            m2.stop(stop_action="brake")LeituraIR(2)
+
+            leitura = LeituraIR(2)
+            while leitura > 50:
+                m1.run_forever(speed_sp=70)
+                m2.run_forever(speed_sp=-70)
+            
+            m1.stop(stop_action="brake")
+            m2.stop(stop_action="brake")
+            Medidas[0] = LeituraIR(2)
+            Estado_Local = 1
+
+        elif Estado_Local == 1:
+            variacao, leitura_anterior = 3, 0 #caso tenha alguma descida ou subida na leitura do sensor
+            tempo_g = [time.time(), False] #esse false é para saber ja ja pegou o tempo
+            leitura = LeituraIR(2)
+            leitura_anterior = leitura
+            while leitura <= 50:
+                m1.run_forever(speed_sp=70)
+                m2.run_forever(speed_sp=-70)
+                leitura = LeituraIR(2)
+                if Modulo(leitura - leitura_anterior) >= variacao:
+                    if (leitura - leitura_anterior) < 0: #caso ele ache uma variação grande na medição, ele zera as variaveis
+                        Medidas[0] = leitura
+                        tempo_g[0] = time.time()
+                    else:
+                        Medidas[1] = leitura
+                        tempo_g[0] = time.time() - tempo_g[0]
+                        tempo_g[1] = True
+
+            if not tempo_g[1]:
+                tempo_g[0] = time.time() - tempo_g[0]
+
+            m1.stop(stop_action="brake")
+            m2.stop(stop_action="brake")
+            print(str(tempo_g[0]))
+            time.sleep(10)
+
+def alinhar(c):
+    res = c_alinhar(c)
+    if res:
+        return res
+    m1.run_forever(speed_sp=250)
+    m2.run_forever(speed_sp=250)
+    time.sleep(0.5)
+    m1.stop(stop_action="brake")
+    m2.stop(stop_action="brake")
+    return 0
+
+def c_alinhar(c): #Essa função alinha o lego a uma cor especifica c.
+    if cor.value() == c and cor2.value() == c:
+        return 0
+    while True:
+        if cor.value() == c:
+            m1.stop(stop_action="brake")
+            m2.stop(stop_action="brake")
+            while cor.value() == c:
+                m1.run_forever(speed_sp=-50)
+                m2.run_forever(speed_sp=-50)
+            m1.stop(stop_action="brake")
+            m2.stop(stop_action="brake")
+            #m1.run_forever(speed_sp=-150)
+            m2.run_forever(speed_sp=100)
+            while cor2.value() != c:
+                if cor2.value() == 0:
+                    return 1
+                if cor.value() != c:
+                    m1.run_forever(speed_sp=70)
+                else:
+                    m1.stop(stop_action="brake")
+            return 0
+
+        if cor2.value() == c:
+            m1.stop(stop_action="brake")
+            m2.stop(stop_action="brake")
+            while cor2.value() == c:
+                m1.run_forever(speed_sp=-50)
+                m2.run_forever(speed_sp=-50)
+            m1.stop(stop_action="brake")
+            m2.stop(stop_action="brake")
+            m1.run_forever(speed_sp=100)
+            #m2.run_forever(speed_sp=-150)
+            while cor.value() != c:
+                if cor.value() == 0:
+                    return 1
+                if cor2.value() != c:
+                    m2.run_forever(speed_sp=70)
+                else:
+                    m2.stop(stop_action="brake")
+            return 0
+
+def Encontrar_Pos():
+    while True:
+        m1.run_forever(speed_sp=300)
+        m2.run_forever(speed_sp=300)
+        if cor.value() == 1 or cor2.value() == 1: #Preto
+            if alinhar(1) == 1:
+                Emergencia()
+            else:
+                m1.stop(stop_action="brake")
+                m2.stop(stop_action="brake")
+                return 0
+        if 50 <= ir.value() <= 90:
+            Emergencia()
+
+m1.run_forever(speed_sp=150)
+m2.run_forever(speed_sp=150)
+
+while True:
+    if Estado == 0:
+        Encontrar_Pos()
+        Estado = 1
+
+    elif Estado == 1:
+        a = blakeLine()
+        print(a)
+        time.sleep(10)
+        #andar na linha, descobrindo as cores
+    elif Estado == 2:
+        while True:
+            if LeituraIR(2) < 40:
+                AchouCano()
+        #descobrir os espaços na tubulação
+    elif Estado == 3:
+        pass
+        #voltar para pegar os tubos
+    elif Estado == 4:
+        m1.run_forever(speed_sp=300)
+        m2.run_forever(speed_sp=-300)
+
+        while True:
+            if 45 < ir.value() < 60:
+                m1.run_forever(speed_sp=100)
+                m2.run_forever(speed_sp=100)
+            elif ir.value() <= 45:
+                #AchouCano()
+                time.sleep(10)
+    elif Estado == 5:
+        giraRobo(80, False)
+        m1.run_forever(speed_sp=100)
+        m2.run_forever(speed_sp=100)
+        while True:
+            if 46 <= ir.value() <= 90:
+                m1.stop(stop_action="brake")
+                m2.stop(stop_action="brake")
+                giraRobo(143, True)
+                m1.run_forever(speed_sp=100)
+                m2.run_forever(speed_sp=100)
+                time.sleep(10)
+                m1.stop(stop_action="brake")
+                m2.stop(stop_action="brake")
+                time.sleep(10)
+
+'''
+
+cont = 0
     tempos_media, Leituras_ir = [], []
-    print("Entrou F")
     while True:
         m1.stop(stop_action="brake")
         m2.stop(stop_action="brake")
@@ -233,112 +416,4 @@ def AchouCano():
     m1.stop(stop_action="brake")
     m2.stop(stop_action="brake")
 
-def alinhar(c):
-    res = c_alinhar(c)
-    if res:
-        return res
-    m1.run_forever(speed_sp=250)
-    m2.run_forever(speed_sp=250)
-    time.sleep(0.5)
-    m1.stop(stop_action="brake")
-    m2.stop(stop_action="brake")
-    return 0
-
-def c_alinhar(c): #Essa função alinha o lego a uma cor especifica c.
-    if cor.value() == c and cor2.value() == c:
-        return 0
-    while True:
-        if cor.value() == c:
-            m1.stop(stop_action="brake")
-            m2.stop(stop_action="brake")
-            while cor.value() == c:
-                m1.run_forever(speed_sp=-50)
-                m2.run_forever(speed_sp=-50)
-            m1.stop(stop_action="brake")
-            m2.stop(stop_action="brake")
-            #m1.run_forever(speed_sp=-150)
-            m2.run_forever(speed_sp=100)
-            while cor2.value() != c:
-                if cor2.value() == 0:
-                    return 1
-                if cor.value() != c:
-                    m1.run_forever(speed_sp=70)
-                else:
-                    m1.stop(stop_action="brake")
-            return 0
-
-        if cor2.value() == c:
-            m1.stop(stop_action="brake")
-            m2.stop(stop_action="brake")
-            while cor2.value() == c:
-                m1.run_forever(speed_sp=-50)
-                m2.run_forever(speed_sp=-50)
-            m1.stop(stop_action="brake")
-            m2.stop(stop_action="brake")
-            m1.run_forever(speed_sp=100)
-            #m2.run_forever(speed_sp=-150)
-            while cor.value() != c:
-                if cor.value() == 0:
-                    return 1
-                if cor2.value() != c:
-                    m2.run_forever(speed_sp=70)
-                else:
-                    m2.stop(stop_action="brake")
-            return 0
-
-def Encontrar_Pos():
-    while True:
-        m1.run_forever(speed_sp=300)
-        m2.run_forever(speed_sp=300)
-        if cor.value() == 1 or cor2.value() == 1: #Preto
-            if alinhar(1) == 1:
-                Emergencia()
-            else:
-                m1.stop(stop_action="brake")
-                m2.stop(stop_action="brake")
-                return 0
-        if 50 <= ir.value() <= 90:
-            Emergencia()
-
-while True:
-    if Estado == 0:
-        Encontrar_Pos()
-        Estado = 1
-
-    elif Estado == 1:
-        a = blakeLine()
-        print(a)
-        time.sleep(10)
-        #andar na linha, descobrindo as cores
-    elif Estado == 2:
-        pass
-        #descobrir os espaços na tubulação
-    elif Estado == 3:
-        pass
-        #voltar para pegar os tubos
-    elif Estado == 4:
-        m1.run_forever(speed_sp=300)
-        m2.run_forever(speed_sp=-300)
-
-        while True:
-            if 45 < ir.value() < 60:
-                m1.run_forever(speed_sp=100)
-                m2.run_forever(speed_sp=100)
-            elif ir.value() <= 45:
-                AchouCano()
-                time.sleep(10)
-    elif Estado == 5:
-        giraRobo(80, False)
-        m1.run_forever(speed_sp=100)
-        m2.run_forever(speed_sp=100)
-        while True:
-            if 46 <= ir.value() <= 90:
-                m1.stop(stop_action="brake")
-                m2.stop(stop_action="brake")
-                giraRobo(143, True)
-                m1.run_forever(speed_sp=100)
-                m2.run_forever(speed_sp=100)
-                time.sleep(10)
-                m1.stop(stop_action="brake")
-                m2.stop(stop_action="brake")
-                time.sleep(10)
+'''
