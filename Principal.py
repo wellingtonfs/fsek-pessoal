@@ -2,7 +2,7 @@
 #coding: utf-8
 from ev3dev.ev3 import *
 from threading import *
-import time
+import time, socket
 import math
 
 #------VARIÁVEIS DO PROGRAMA
@@ -28,6 +28,34 @@ dif_temp = 0
 
 #------FIM DAS VARIÁVEIS
 
+class Communication(Thread):
+    def __init__(self):
+        self.us_value = 0
+        self.ir_value = 0
+        Thread.__init__(self)
+
+    def run(self):
+        while True:
+            try:
+                Cliente = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                Cliente.bind(('169.255.168.150', 3549))
+                Cliente.listen(1)
+
+                while True:
+                    Msg, Endereco_Cliente = Cliente.accept()
+                    Dados = str(Msg.recv(1024).decode()).split(",")
+                    self.us_value = int(Dados[0])
+                    self.ir_value = int(Dados[1])
+
+                Cliente.close()
+            except Exception as e:
+                print(e)
+                time.sleep(1)
+
+Comm = Communication()
+Comm.daemon = True
+Comm.start()
+
 #------Inicio Funções:
 
 def giraRobo(graus, sentido, tempo = 2): #True = Esquerda, False = Direita
@@ -50,25 +78,6 @@ def Emergencia():
     giraRobo(120, True)
     m1.run_forever(speed_sp=300)
     m2.run_forever(speed_sp=300)
-
-'''
-class vals(Thread):
-    def __init__(self):
-        Thread.__init__(self)
-
-    def run(self):
-        global Estado, Cor_Anterior, dif_temp
-        while True:
-            print(ir.value())
-            if 46 <= ir.value() <= 60:
-                if Estado == 0:
-                    Emergencia()
-            time.sleep()
-            #print(str(ir.value()))
-
-oi = vals()
-oi.start()
-'''
 
 def blakeLine(): #Walk the black line to learning colors.
     global Estado, Cor_Anterior
@@ -257,9 +266,11 @@ def c_alinhar(c): #Essa função alinha o lego a uma cor especifica c.
                 if cor2.value() == 0:
                     return 1
                 if cor.value() != c:
+                    m2.stop(stop_action="brake")
                     m1.run_forever(speed_sp=70)
                 else:
                     m1.stop(stop_action="brake")
+                    m2.run_forever(speed_sp=100)
             return 0
 
         if cor2.value() == c:
@@ -276,8 +287,10 @@ def c_alinhar(c): #Essa função alinha o lego a uma cor especifica c.
                 if cor.value() == 0:
                     return 1
                 if cor2.value() != c:
+                    m1.stop(stop_action="brake")
                     m2.run_forever(speed_sp=70)
                 else:
+                    m1.run_forever(speed_sp=100)
                     m2.stop(stop_action="brake")
             return 0
 
