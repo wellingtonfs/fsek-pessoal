@@ -36,7 +36,7 @@ ir2.mode = 'IR-PROX'
 '''
 
 #Variaveis de uso geral
-Estado = 0 #0 = inicio, 1 = ...
+Estado = 42 #0 = inicio, 1 = ...
 Pos_Cores = [[0,10],[0,15],[0,20]] #(x = 10), (y = 15), (z = 20) 
 Cor_Anterior = 0
 Tempo_Cor = 0
@@ -54,8 +54,8 @@ class Communication(Thread):
         while True:
             try:
                 Cliente = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                Cliente.bind(('169.255.168.150', 3550))
-                Cliente.listen(1)
+                Cliente.bind(('169.255.168.150', 3560))
+                Cliente.listen(2)
 
                 while True:
                     Msg, Endereco_Cliente = Cliente.accept()
@@ -378,7 +378,37 @@ while True:
                 m1.stop(stop_action="brake")
                 m2.stop(stop_action="brake")
                 time.sleep(10)
-
+    elif Estado == 42:
+        tempo_inicio, tempo_iniciopista, anterior_leitura = 0, [], 0
+        tempo_dez, tempo_quinze, tempo_vinte = 0,0,0
+        #if alinhar(3) == 0:
+        m1.run_to_rel_pos(position_sp=800, speed_sp=150, stop_action="brake")
+        m2.run_to_rel_pos(position_sp=800, speed_sp=150, stop_action="brake")
+        time.sleep(3)
+        giraRobo(-90)
+        while True:
+            m1.run_forever(speed_sp=150)
+            m2.run_forever(speed_sp=150)
+            if us.value() > 36 or us2.value() > 36:
+                m1.stop_action("brake")
+                m2.stop_action("brake")
+                giraRobo(180)
+                if len(tempo_iniciopista) > 1:
+                    tempo_iniciopista.append(time.time())
+            elif anterior_leitura == 0:
+                tempo_iniciopista.append(time.time()) 
+                anterior_leitura = Comm.ir2_value
+            elif (Comm.ir2_value - anterior_leitura) > 20: #Descobre um vao
+                tempo_iniciopista.append(time.time())
+                anterior_leitura = Comm.ir2_value
+                if tempo_inicio == 0:
+                    tempo_inicio = time.time()
+            elif (Comm.ir2_value - anterior_leitura) < 20: #Vao fechou
+                tempo_iniciopista.append(time.time())
+                anterior_leitura = Comm.ir2_value
+                if (time.time() - tempo_inicio) > 0:
+                    print(str(time.time() - tempo_inicio))
+                    time.sleep(15)
 '''
 
 cont = 0
@@ -453,3 +483,17 @@ cont = 0
     m2.stop(stop_action="brake")
 
 '''
+
+
+                
+
+
+
+                
+
+
+
+
+                
+                
+                
