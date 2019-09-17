@@ -6,6 +6,7 @@ import time, socket
 import math
 
 #------VARIÁVEIS DO PROGRAMA
+#c
 
 #Sensores
 m1 = LargeMotor('outD')
