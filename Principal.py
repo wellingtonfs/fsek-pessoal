@@ -4,7 +4,7 @@ from ev3dev.ev3 import *
 from threading import *
 import time, socket
 import math
-#TESTE BRANCH
+
 #------VARIÁVEIS DO PROGRAMA
 
 #Sensores
@@ -495,7 +495,7 @@ cont = 0
 '''
 
 
-                
+qwyoedgqowueydgqwodgqwoedgqouweydgqouwegdqouwyegdoqwuyegdoqweuygdquoydguoyqewgduoyedguoq
 
 
 
