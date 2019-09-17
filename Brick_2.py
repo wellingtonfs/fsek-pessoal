@@ -10,30 +10,38 @@ ir.mode = 'IR-PROX'
 ir2 = InfraredSensor('in2')
 ir2.mode = 'IR-PROX'
 
+cor = ColorSensor('in3')
+cor.mode = 'RGB-RAW'
+
+Verificar_Conexao = True
+tt = 0
+cont = 0
 while True:
     try:
         while True:
-            a = ir.value()
-            b = ir2.value()
-
-            if a > 99 or b > 99:
-                continue
-
             Servidor = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            Servidor.connect(('169.255.168.150', 3550))
+            Servidor.connect(('169.255.168.150', 3561))
+            if Verificar_Conexao:
+                cont += 1
+                print("Conectado" + str(cont))
+                Verificar_Conexao = False
 
-            print("%d --- %d" %ir.value() %ir2.value())
+            #print("%d --- %d" %(ir.value() %ir2.value()))
 
             Str_Env = "%d,%d" %(ir.value(), ir2.value())
+
+            if (time.time() - tt) > 0.5:
+                print("%d  -  %d" %(ir2.value(), cor.value()))
+                tt = time.time()
+
             St = Str_Env.encode('utf-8')
 
             Servidor.send(St)
-            Servidor.close()
-            
-            time.sleep(0.01)
+            time.sleep(0.05)
 
+        Servidor.close()
             
     except Exception as e:
         print(e)
-        time.sleep(1)
+        Verificar_Conexao = True
         

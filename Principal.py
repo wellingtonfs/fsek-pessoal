@@ -51,17 +51,21 @@ class Communication(Thread):
         Thread.__init__(self)
 
     def run(self):
+        global Estado
         while True:
             try:
                 Cliente = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                Cliente.bind(('169.255.168.150', 3560))
-                Cliente.listen(2)
+                Cliente.bind(('169.255.168.150', 3561))
+                Cliente.listen(1)
 
                 while True:
                     Msg, Endereco_Cliente = Cliente.accept()
                     Dados = str(Msg.recv(1024).decode()).split(",")
                     self.ir_value = int(Dados[0])
                     self.ir2_value = int(Dados[1])
+                    if Estado == -1:
+                        print("Conectado")
+                        Estado = 0
 
                 Cliente.close()
             except Exception as e:
@@ -382,10 +386,12 @@ while True:
         tempo_inicio, tempo_iniciopista, anterior_leitura = 0, [], 0
         tempo_dez, tempo_quinze, tempo_vinte = 0,0,0
         #if alinhar(3) == 0:
-        m1.run_to_rel_pos(position_sp=800, speed_sp=150, stop_action="brake")
-        m2.run_to_rel_pos(position_sp=800, speed_sp=150, stop_action="brake")
-        time.sleep(3)
-        giraRobo(-90)
+        m1.run_forever(speed_sp=150)
+        m2.run_forever(speed_sp=150)
+        time.sleep(2)
+        m1.stop(stop_action="brake")
+        m2.stop(stop_action="brake")
+        giraRobo(-90, 3)
         while True:
             m1.run_forever(speed_sp=150)
             m2.run_forever(speed_sp=150)
