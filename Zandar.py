@@ -20,6 +20,7 @@ class Communication(Thread):
     def __init__(self):
         self.ir_value = 0
         self.ir2_value = 0
+        self.tc = ' '
         Thread.__init__(self)
 
     def run(self):
@@ -27,7 +28,7 @@ class Communication(Thread):
         while True:
             try:
                 Cliente = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                Cliente.bind(('169.255.168.150', 3561))
+                Cliente.bind(('169.255.168.150', 3562))
                 Cliente.listen(1)
 
                 while True:
@@ -35,6 +36,7 @@ class Communication(Thread):
                     Dados = str(Msg.recv(1024).decode()).split(",")
                     self.ir_value = int(Dados[0])
                     self.ir2_value = int(Dados[1])
+                    self.tc = Dados[2]
                     if Estado == -1:
                         print("Conectado")
                         Estado = 0
@@ -49,13 +51,20 @@ Comm.daemon = True
 Comm.start()
 
 temp = 0
+a = False
 
 while True:
     if Estado == 0:
-        m1.run_forever(speed_sp=100)
-        m2.run_forever(speed_sp=100)
-
-        if (time.time() - temp) > 0.2:
-            str_p = "%d\n" %Comm.ir2_value
+        if Comm.tc == '1':
+            a = True
+            m1.run_forever(speed_sp=70)
+            m2.run_forever(speed_sp=-70)
+            str_p = "%d\n" %Comm.ir_value
             salvar(str_p)
             temp = time.time()
+        else:
+            if a:
+                salvar("\n\n--------\n\n")
+                a = False
+            m1.stop(stop_action="brake")
+            m2.stop(stop_action="brake")
