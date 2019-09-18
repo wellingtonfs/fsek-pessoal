@@ -44,6 +44,13 @@ dif_temp = 0
 
 #------FIM DAS VARIÁVEIS
 
+def rgb2hsv():
+    r = Dados[2]
+    g = Dados[3]
+    b = Dados[4]
+    colorsys.rgb_to_hsv(r, g, b)
+    return [h,s,v]
+
 class Communication(Thread):
     def __init__(self):
         self.ir_value = 0
@@ -63,6 +70,7 @@ class Communication(Thread):
                     Dados = str(Msg.recv(1024).decode()).split(",")
                     self.ir_value = int(Dados[0])
                     self.ir2_value = int(Dados[1])
+                    rgb2hsv([int(Dados[2]), int(Dados[3]), int(Dados[4])])
                     if Estado == -1:
                         print("Conectado")
                         Estado = 0
@@ -85,7 +93,7 @@ def giraRobo(graus, tempo = 2): #90 > 0: direita else: esquerda
         m2.run_to_rel_pos(position_sp=-(razaoRobo*graus),speed_sp=180,stop_action="brake")
     else:
         m1.run_to_rel_pos(position_sp=-(razaoRobo*(graus*-1)),speed_sp=180,stop_action="brake")
-        m2.run_to_rel_pos(position_sp=(razaoRobo*(graus*-1)),speed_sp=180,stop_action="brake")
+        m2.run_to_rel_pos(position_sp=(zaoRobo*(graus*-1)),speed_sp=180,stop_action="brake")
     if tempo != 0:
         time.sleep(tempo)
 
