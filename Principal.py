@@ -52,6 +52,11 @@ def rgb2hsv():
     colorsys.rgb_to_hsv(r, g, b)
     return [h,s,v]
 
+def hsv2rgb(h,s,v):
+    colorsys.hsv_to_rgb(h,s,v)
+    return [r,g,b]
+    
+
 class Communication(Thread):
     def __init__(self):
         self.ir_value = 0
