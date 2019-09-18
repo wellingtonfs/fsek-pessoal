@@ -4,6 +4,7 @@ from ev3dev.ev3 import *
 from threading import *
 import time, socket
 import math
+import colorsys
 
 #------VARIÁVEIS DO PROGRAMA
 
@@ -74,7 +75,6 @@ class Communication(Thread):
 
     def run(self):
         global Estado
-	#testando n sei
         while True:
             try:
                 Cliente = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
