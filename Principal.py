@@ -6,7 +6,6 @@ import time, socket
 import math
 
 #------VARIÁVEIS DO PROGRAMA
-#c
 
 #Sensores
 m1 = LargeMotor('outD')
@@ -45,16 +44,26 @@ dif_temp = 0
 
 #------FIM DAS VARIÁVEIS
 
-def rgb2hsv():
+def convertHSV():
     r = Dados[2]
     g = Dados[3]
     b = Dados[4]
     colorsys.rgb_to_hsv(r, g, b)
-    return [h,s,v]
+    return [h, s, v]
 
-def hsv2rgb(h,s,v):
+def convertRGB(h,s,v):
+    v = 100
     colorsys.hsv_to_rgb(h,s,v)
-    return [r,g,b]
+    return [r, g, b]
+
+def Verifica_Cor():
+    convertHSV()
+    time.sleep(0.003)
+    convertRGB()
+    time.sleep(0.003)
+
+    
+
     
 
 class Communication(Thread):
@@ -77,7 +86,7 @@ class Communication(Thread):
                     Dados = str(Msg.recv(1024).decode()).split(",")
                     self.ir_value = int(Dados[0])
                     self.ir2_value = int(Dados[1])
-                    rgb2hsv([int(Dados[2]), int(Dados[3]), int(Dados[4])])
+                    convertHSV([int(Dados[2]), int(Dados[3]), int(Dados[4])])
                     if Estado == -1:
                         print("Conectado")
                         Estado = 0
