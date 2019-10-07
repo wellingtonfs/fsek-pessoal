@@ -45,27 +45,57 @@ dif_temp = 0
 
 #------FIM DAS VARIÁVEIS
 
-def convertHSV():
-    r = Dados[2]
-    g = Dados[3]
-    b = Dados[4]
-    colorsys.rgb_to_hsv(r, g, b)
-    return [h, s, v]
+def convertHSV(r, g, b):
+    h, s, v = colorsys.rgb_to_hsv(r, g, b)
+    return (h, s, v)
 
-def convertRGB(h,s,v):
-    v = 100
-    colorsys.hsv_to_rgb(h,s,v)
-    return [r, g, b]
+def convertRGB(h, s, v):
+    r, g, b = colorsys.hsv_to_rgb(h,s,v)
+    return (r, g, b)
 
 def Verifica_Cor():
-    convertHSV()
-    time.sleep(0.003)
-    convertRGB()
-    time.sleep(0.003)
+    (h, s, v) = convertHSV(Dados[2], Dados[3], Dados[4])
+    s = 0.8
+    v = 1
+    (r, g, b) = convertRGB(h, s, v)
+    #Codigo Lucas
+    color_name = ""
 
+    colors = {
+        "black": "#000000",
+        "red": "#FF0000",
+        "yellow": "#FFFF00",
+        "green": "#00FF00",
+        "blue": "#0000FF",
+        "white": "#FFFFFF"
+    }
+
+    def rgbFromStr(s):
+            r, g, b = int(s[1:3],16), int(s[3:5], 16),int(s[5:7], 16)  
+            return r, g, b  
+
+    def findNearestColorName(color, Map):  
+        (R,G,B) = color
+        mindiff = None
+        for d in Map:  
+            r, g, b = rgbFromStr(Map[d])  
+            diff = abs(R-r)256 + abs(G-g) 256 + abs(B-b) * 256   
+            if mindiff is None or diff < mindiff:  
+                mindiff = diff  
+                mincolorname = d  
+        return mincolorname    
+
+    for r in range(0, 255):
+        for g in range(0, 255):
+            for b in range(0, 255):
+                color = findNearestColorName((r, g, b), colors)
+                if(color != color_name):
+                    color_name = color
+                    print(color_name, " - ", r,g,b)
+    
     
 
-    
+
 
 class Communication(Thread):
     def __init__(self):
@@ -517,8 +547,6 @@ cont = 0
 
 '''
 
-
-qwyoedgqowueydgqwodgqwoedgqouweydgqouwegdqouwyegdoqwuyegdoqweuygdquoydguoyqewgduoyedguoq
 
 
 
