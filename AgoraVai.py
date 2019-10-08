@@ -12,7 +12,7 @@ m2 = LargeMotor('outC')
 #Sensor_Cor = [ColorSensor('in1'), ColorSensor('in2')]
 #Sensor_Cor[0] = ColorSensor('in1') #2
 #Sensor_Cor[1] = ColorSensor('in2') #4
-#us = UltrasonicSensor('in3')
+us = UltrasonicSensor('in3')
 #us2 = UltrasonicSensor('in4')
 ir = InfraredSensor('in4')
 # ir2 = InfraredSensor('in1')
@@ -20,7 +20,7 @@ ir = InfraredSensor('in4')
 
 #Sensor_Cor[0].mode = 'COL-COLOR'
 #Sensor_Cor[1].mode = 'COL-COLOR'
-#us.mode = 'US-DIST-CM'
+us.mode = 'US-DIST-CM'
 #us2.mode = 'US-DIST-CM'
 ir.mode = 'IR-PROX'
 # ir2.mode = 'IR-PROX'
@@ -167,4 +167,4 @@ while (us.value() > 230):
 '''
 
 while True:
-    print ("%d" %ir.value())
+    print ("%d" %us.value())

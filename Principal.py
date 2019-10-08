@@ -329,30 +329,31 @@ def scan_sup():
         m2.stop(stop_action="brake")
         giraRobo(-90)
     while True:
-        while (135 < us.value() < 300):
-            m1.run_forever(speed_sp=150)
-            m2.run_forever(speed_sp=150)
-        m1.stop(stop_action="brake")
-        m2.stop(stop_action="brake")
-        time.sleep(2)
-        ti = time.time()
+        if (us.value() <= 570):
+            while (110 < us.value() < 338):
+                m1.run_forever(speed_sp=150)
+                m2.run_forever(speed_sp=150)
+            m1.stop(stop_action="brake")
+            m2.stop(stop_action="brake")
+            time.sleep(2)
+            ti = time.time()
 
-        while (300 < us.value() < 500):
-            m1.run_forever(speed_sp=150)
-            m2.run_forever(speed_sp=150)
-            time.sleep(0.5)
-        tf = time.time()
-        m1.stop(stop_action="brake")
-        m2.stop(stop_action="brake")
-        time.sleep(2)
+            while (338 < us.value() < 570):
+                m1.run_forever(speed_sp=150)
+                m2.run_forever(speed_sp=150)
+                time.sleep(0.5)
+            tf = time.time()
+            m1.stop(stop_action="brake")
+            m2.stop(stop_action="brake")
+            time.sleep(2)
 
-        x = ((((tf-ti)/2)*1000)+3000)
+        x = ((((tf-ti)/2)*1000)+1000)
 
         m1.run_timed(time_sp=x, speed_sp=-150, stop_action="brake")
         m2.run_timed(time_sp=x, speed_sp=-150, stop_action="brake")
-        time.sleep(2)
+        time.sleep(5)
 
-        giraRobo(90)
+        giraRobo(-90)
         
         while (ir.value() > 27):
             print ("%d" %ir.value())
@@ -400,40 +401,6 @@ def scan_gasoduto():
             if (time.time() - tempo_inicio) > 0:
                 print(str(time.time() - tempo_inicio))
                 time.sleep(15)
-    '''while True:
-        while (135 < us.value() < 300):
-            m1.run_forever(speed_sp=150)
-            m2.run_forever(speed_sp=150)
-        m1.stop(stop_action="brake")
-        m2.stop(stop_action="brake")
-        time.sleep(2)
-        ti = time.time()
-
-        while (300 < us.value() < 500):
-            m1.run_forever(speed_sp=150)
-            m2.run_forever(speed_sp=150)
-            time.sleep(0.5)
-        tf = time.time()
-        m1.stop(stop_action="brake")
-        m2.stop(stop_action="brake")
-        time.sleep(2)
-
-        x = ((((tf-ti)/2)*1000)+3000)
-
-        m1.run_timed(time_sp=x, speed_sp=-150, stop_action="brake")
-        m2.run_timed(time_sp=x, speed_sp=-150, stop_action="brake")
-        time.sleep(2)
-
-        giraRobo(90)
-        
-        while (ir.value() > 27):
-            print ("%d" %ir.value())
-            m1.run_forever(speed_sp=150)
-            m2.run_forever(speed_sp=150)
-            time.sleep(2)
-
-        m1.stop(stop_action="brake")
-        m2.stop(stop_action="brake")'''
 
 def alinhar(c): #Essa função alinha o lego a uma cor especifica c.
     if Sensor_Cor[0].value() == c and Sensor_Cor[1].value() == c:
