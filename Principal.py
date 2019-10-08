@@ -58,6 +58,7 @@ def Verifica_Cor():
     s = 0.8
     v = 1
     (r, g, b) = convertRGB(h, s, v)
+    
     #Codigo Lucas
     color_name = ""
 
