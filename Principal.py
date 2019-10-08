@@ -73,12 +73,12 @@ def Verifica_Cor(x,y,z):
     color_name = ""
 
     colors = {
-        "black": "#000000",
-        "red": "#FF0000",
-        "yellow": "#FFFF00",
-        "green": "#00FF00",
-        "blue": "#0000FF",
-        "white": "#FFFFFF"
+        "1": "#000000" #Black,
+        "5": "#FF0000" #Red,
+        "4": "#FFFF00" #Yellow,
+        "3": "#00FF00" #Green,
+        "2": "#0000FF" #Blue,
+        "6": "#FFFFFF" #White
     }
 
     def rgbFromStr(s):
