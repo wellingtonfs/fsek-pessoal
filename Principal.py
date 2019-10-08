@@ -37,14 +37,14 @@ ir2.mode = 'IR-PROX'
 '''
 
 #Variaveis de uso geral
-Estado = 42 #0 = inicio, 1 = ...
+Estado = 69 #0 = inicio, 1 = ...
 Pos_Cores = [[0,10],[0,15],[0,20]] #(x = 10), (y = 15), (z = 20) 
 Cor_Anterior = 0
 Tempo_Cor = 0
 dif_temp = 0
 
 #------FIM DAS VARIÁVEIS
-
+'''
 def convertHSV(r, g, b):
     h, s, v = colorsys.rgb_to_hsv(r, g, b)
     return (h, s, v)
@@ -73,12 +73,12 @@ def Verifica_Cor(x,y,z):
     color_name = ""
 
     colors = {
-        "1": "#000000" #Black,
-        "5": "#FF0000" #Red,
-        "4": "#FFFF00" #Yellow,
-        "3": "#00FF00" #Green,
-        "2": "#0000FF" #Blue,
-        "6": "#FFFFFF" #White
+        "Black": "#000000" #Black,
+        "Red": "#FF0000" #Red,
+        "Yellow": "#FFFF00" #Yellow,
+        "Green": "#00FF00" #Green,
+        "Blue": "#0000FF" #Blue,
+        "White": "#FFFFFF" #White
     }
 
     def rgbFromStr(s):
@@ -97,7 +97,7 @@ def Verifica_Cor(x,y,z):
         return mincolorname    
 
     color = findNearestColorName((r, g, b), colors)
-    print(color, " - ", r, g, b)
+    print(color, " - ", r, g, b)'''
     
 
 
@@ -317,10 +317,8 @@ def AchouCano():
             print(str(tempo_g[0]))
             time.sleep(10)
 
-def scan_gasoduto():
-    tempo_inicio, tempos_pista, anterior_leitura = -1, [], 0
+def scan_sup():
     ti, tf = -1, -1
-    tempo_dez, tempo_quinze, tempo_vinte = 0,0,0
     m1.run_forever(speed_sp=150)
     m2.run_forever(speed_sp=150)
     if alinhar(2) == 0:
@@ -330,29 +328,6 @@ def scan_gasoduto():
         m1.stop(stop_action="brake")
         m2.stop(stop_action="brake")
         giraRobo(-90)
-    '''while True:
-        m1.run_forever(speed_sp=150)
-        m2.run_forever(speed_sp=150)
-        if us.value() > 36 or us2.value() > 36:
-            m1.stop_action("brake")
-            m2.stop_action("brake")
-            giraRobo(180)
-            if len(tempos_pista) > 1:
-                tempos_pista.append(time.time())
-        elif anterior_leitura == -1:
-            tempos_pista.append(time.time()) 
-            anterior_leitura = Comm.ir2_value
-        elif (Comm.ir2_value - anterior_leitura) > 20: #Descobre um vao
-            tempos_pista.append(time.time())
-            anterior_leitura = Comm.ir2_value
-            if tempo_inicio == 0:
-                tempo_inicio = time.time()
-        elif (Comm.ir2_value - anterior_leitura) < 20: #Vao fechou
-            tempos_pista.append(time.time())
-            anterior_leitura = Comm.ir2_value
-            if (time.time() - tempo_inicio) > 0:
-                print(str(time.time() - tempo_inicio))
-                time.sleep(15)'''
     while True:
         while (135 < us.value() < 300):
             m1.run_forever(speed_sp=150)
@@ -388,6 +363,77 @@ def scan_gasoduto():
         m1.stop(stop_action="brake")
         m2.stop(stop_action="brake")
         break
+
+def scan_gasoduto():
+    tempo_inicio, tempos_pista, anterior_leitura = -1, [], 0
+    ti, tf = -1, -1
+    tempo_dez, tempo_quinze, tempo_vinte = 0,0,0
+    m1.run_forever(speed_sp=150)
+    m2.run_forever(speed_sp=150)
+    if alinhar(2) == 0:
+        m1.run_forever(speed_sp=150)
+        m2.run_forever(speed_sp=150)
+        time.sleep(2)
+        m1.stop(stop_action="brake")
+        m2.stop(stop_action="brake")
+        giraRobo(-90)
+    while True:
+        m1.run_forever(speed_sp=150)
+        m2.run_forever(speed_sp=150)
+        if us.value() > 36 or us2.value() > 36:
+            m1.stop_action("brake")
+            m2.stop_action("brake")
+            giraRobo(180)
+            if len(tempos_pista) > 1:
+                tempos_pista.append(time.time())
+        elif anterior_leitura == -1:
+            tempos_pista.append(time.time()) 
+            anterior_leitura = Comm.ir2_value
+        elif (Comm.ir2_value - anterior_leitura) > 20: #Descobre um vao
+            tempos_pista.append(time.time())
+            anterior_leitura = Comm.ir2_value
+            if tempo_inicio == 0:
+                tempo_inicio = time.time()
+        elif (Comm.ir2_value - anterior_leitura) < 20: #Vao fechou
+            tempos_pista.append(time.time())
+            anterior_leitura = Comm.ir2_value
+            if (time.time() - tempo_inicio) > 0:
+                print(str(time.time() - tempo_inicio))
+                time.sleep(15)
+    '''while True:
+        while (135 < us.value() < 300):
+            m1.run_forever(speed_sp=150)
+            m2.run_forever(speed_sp=150)
+        m1.stop(stop_action="brake")
+        m2.stop(stop_action="brake")
+        time.sleep(2)
+        ti = time.time()
+
+        while (300 < us.value() < 500):
+            m1.run_forever(speed_sp=150)
+            m2.run_forever(speed_sp=150)
+            time.sleep(0.5)
+        tf = time.time()
+        m1.stop(stop_action="brake")
+        m2.stop(stop_action="brake")
+        time.sleep(2)
+
+        x = ((((tf-ti)/2)*1000)+3000)
+
+        m1.run_timed(time_sp=x, speed_sp=-150, stop_action="brake")
+        m2.run_timed(time_sp=x, speed_sp=-150, stop_action="brake")
+        time.sleep(2)
+
+        giraRobo(90)
+        
+        while (ir.value() > 27):
+            print ("%d" %ir.value())
+            m1.run_forever(speed_sp=150)
+            m2.run_forever(speed_sp=150)
+            time.sleep(2)
+
+        m1.stop(stop_action="brake")
+        m2.stop(stop_action="brake")'''
 
 def alinhar(c): #Essa função alinha o lego a uma cor especifica c.
     if Sensor_Cor[0].value() == c and Sensor_Cor[1].value() == c:
@@ -522,6 +568,8 @@ while True:
                 time.sleep(10)
     elif Estado == 42:
         scan_gasoduto()
+    elif Estado == 69:
+        scan_sup()
 '''
 
 cont = 0
@@ -596,18 +644,3 @@ cont = 0
     m2.stop(stop_action="brake")
 
 '''
-
-
-<<<<<<< HEAD
-=======
-
-
->>>>>>> f493d9f35a0086e190c066028ffb445cab7c29ae
-                
-
-
-
-
-                
-                
-                
