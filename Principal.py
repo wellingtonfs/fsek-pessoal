@@ -50,14 +50,24 @@ def convertHSV(r, g, b):
     return (h, s, v)
 
 def convertRGB(h, s, v):
-    r, g, b = colorsys.hsv_to_rgb(h,s,v)
+    r, g, b = colorsys.hsv_to_rgb(h, s, v)
     return (r, g, b)
 
-def Verifica_Cor():
-    (h, s, v) = convertHSV(Dados[2], Dados[3], Dados[4])
+def Verifica_Cor(x,y,z):
+    #(x, y, z) = cor3.value(0), cor3.value(1), cor3.value(2)
+    x = x/1023
+    y = y/1023
+    z = z/1023
+    
+    (h, s, v) = convertHSV(x, y, z)
+    
     s = 0.8
     v = 1
     (r, g, b) = convertRGB(h, s, v)
+    
+    r = r * 255
+    g = g * 255
+    b = b * 255
     
     #Codigo Lucas
     color_name = ""
@@ -80,20 +90,14 @@ def Verifica_Cor():
         mindiff = None
         for d in Map:  
             r, g, b = rgbFromStr(Map[d])  
-            diff = abs(R-r)256 + abs(G-g) 256 + abs(B-b) * 256   
+            diff = abs(R-r) * 256 + abs(G-g) * 256 + abs(B-b) * 256   
             if mindiff is None or diff < mindiff:  
                 mindiff = diff  
                 mincolorname = d  
         return mincolorname    
 
-    for r in range(0, 255):
-        for g in range(0, 255):
-            for b in range(0, 255):
-                color = findNearestColorName((r, g, b), colors)
-                if(color != color_name):
-                    color_name = color
-                    print(color_name, " - ", r,g,b)
-    
+    color = findNearestColorName((r, g, b), colors)
+    print(color, " - ", r, g, b)
     
 
 
@@ -117,7 +121,7 @@ class Communication(Thread):
                     Dados = str(Msg.recv(1024).decode()).split(",")
                     self.ir_value = int(Dados[0])
                     self.ir2_value = int(Dados[1])
-                    convertHSV([int(Dados[2]), int(Dados[3]), int(Dados[4])])
+                    Verifica_Cor([int(Dados[2]), int(Dados[3]), int(Dados[4])])
                     if Estado == -1:
                         print("Conectado")
                         Estado = 0
