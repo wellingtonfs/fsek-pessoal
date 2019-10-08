@@ -22,16 +22,13 @@ def Verifica_Cor():
     x = x/1023
     y = y/1023
     z = z/1023
-    #print(x,y,z)
-    #print("\n")
+    
     (h, s, v) = convertHSV(x, y, z)
-    #print(h,s,v)
-    #print("\n")
+    
     s = 0.8
     v = 1
     (r, g, b) = convertRGB(h, s, v)
-    #print(r,g,b)
-    #print("\n")
+    
     r = r * 255
     g = g * 255
     b = b * 255
@@ -65,11 +62,6 @@ def Verifica_Cor():
 
     color = findNearestColorName((r, g, b), colors)
     print(color, " - ", r, g, b)
-    #print("\n")
-
-while True: 
-    Verifica_Cor()
-    #print(color)
-    time.sleep(5)
+    
     
     
