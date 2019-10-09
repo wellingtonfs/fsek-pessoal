@@ -166,5 +166,16 @@ while (us.value() > 230):
     m2.run_forever(speed_sp=-150)
 '''
 
-while True:
-    print ("%d" %us.value())
+'''while True:
+    print ("%d" %us.value())'''
+
+m1.run_forever(speed_sp=150)
+m2.run_forever(speed_sp=150)
+
+while (ir.value() > 27):
+    print ("%d" %ir.value())
+    m1.run_forever(speed_sp=150)
+    m2.run_forever(speed_sp=150)
+    time.sleep(2)
+m1.stop(stop_action="brake")
+m2.stop(stop_action="brake")

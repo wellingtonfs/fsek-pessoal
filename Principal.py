@@ -139,12 +139,17 @@ Comm.start()'''
 
 def giraRobo(graus, tempo = 2): #90 > 0: direita else: esquerda
     razaoRobo = 5.25 / 3.0
+
+    m1.stop(stop_action="brake")
+    m2.stop(stop_action="brake")
+    time.sleep(0.3)
+
     if graus > 0:
-        m1.run_to_rel_pos(position_sp=(razaoRobo*graus),speed_sp=180,stop_action="brake")
-        m2.run_to_rel_pos(position_sp=-(razaoRobo*graus),speed_sp=180,stop_action="brake")
+        m1.run_to_rel_pos(position_sp=(razaoRobo*graus),speed_sp=280,stop_action="brake")
+        m2.run_to_rel_pos(position_sp=-(razaoRobo*graus),speed_sp=280,stop_action="brake")
     else:
-        m1.run_to_rel_pos(position_sp=-(razaoRobo*(graus*-1)),speed_sp=180,stop_action="brake")
-        m2.run_to_rel_pos(position_sp=(razaoRobo*(graus*-1)),speed_sp=180,stop_action="brake")
+        m1.run_to_rel_pos(position_sp=-(razaoRobo*(graus*-1)),speed_sp=280,stop_action="brake")
+        m2.run_to_rel_pos(position_sp=(razaoRobo*(graus*-1)),speed_sp=280,stop_action="brake")
     if tempo != 0:
         time.sleep(tempo)
 
@@ -325,8 +330,6 @@ def scan_sup():
         m1.run_forever(speed_sp=150)
         m2.run_forever(speed_sp=150)
         time.sleep(2)
-        m1.stop(stop_action="brake")
-        m2.stop(stop_action="brake")
         giraRobo(-90)
     while True:
         if (us.value() <= 570):
@@ -353,7 +356,10 @@ def scan_sup():
         m2.run_timed(time_sp=x, speed_sp=-150, stop_action="brake")
         time.sleep(5)
 
-        giraRobo(-90)
+        giraRobo(90)
+
+        m1.stop(stop_action="brake")
+        m2.stop(stop_action="brake")
         
         while (ir.value() > 27):
             print ("%d" %ir.value())
@@ -363,7 +369,7 @@ def scan_sup():
 
         m1.stop(stop_action="brake")
         m2.stop(stop_action="brake")
-        break
+        time.sleep(30)
 
 def scan_gasoduto():
     tempo_inicio, tempos_pista, anterior_leitura = -1, [], 0
