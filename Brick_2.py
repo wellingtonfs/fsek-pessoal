@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 #coding: utf-8
 from ev3dev.ev3 import *
+from threading import *
 import socket, time
 import math
 
@@ -14,10 +15,10 @@ cor3 = ColorSensor('in3')
 cor3.mode = 'RGB-RAW'
 
 class Communication(Thread):
-    def.__init__(self)
+    def __init__(self):
         Thread.__init__(self)
 
-    def run(self)
+    def run(self):
         Verificar_Conexao = True
         tt = 0
         cont = 0
@@ -25,7 +26,7 @@ class Communication(Thread):
             try:
                 while True:
                     Servidor = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                    Servidor.connect(('169.255.168.150', 3561))
+                    Servidor.connect(('169.255.168.153', 3563))
                     if Verificar_Conexao:
                         cont += 1
                         print("Conectado" + str(cont))
@@ -42,11 +43,20 @@ class Communication(Thread):
                     St = Str_Env.encode('utf-8')
 
                     Servidor.send(St)
-                    time.sleep(0.05)
+                    Servidor.close()
+                    time.sleep(1)
 
                 Servidor.close()
                     
             except Exception as e:
                 print(e)
                 Verificar_Conexao = True
+
+Comm = Communication()
+Comm.daemon = True
+Comm.start()
+
+while True:
+    pass
+
         

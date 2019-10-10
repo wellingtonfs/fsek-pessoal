@@ -37,7 +37,7 @@ ir2.mode = 'IR-PROX'
 '''
 
 #Variaveis de uso geral
-Estado = 42 #0 = inicio, 1 = ...
+Estado = 50 #0 = inicio, 1 = ...
 Pos_Cores = [[0,10],[0,15],[0,20]] #(x = 10), (y = 15), (z = 20) 
 Cor_Anterior = 0
 Tempo_Cor = 0
@@ -54,7 +54,7 @@ def convertRGB(h, s, v):
     return (r, g, b)
 
 def Verifica_Cor(x,y,z):
-    #(x, y, z) = cor3.value(0), cor3.value(1), cor3.value(2)
+    #(x, y, z) = Dados[2], Dados[3], Dados[4]
     x = x/1023
     y = y/1023
     z = z/1023
@@ -69,15 +69,13 @@ def Verifica_Cor(x,y,z):
     g = g * 255
     b = b * 255
     
-    #Codigo Lucas
-    color_name = ""
-
+    
     colors = {
-        "1": "#000000" #Black,
-        "5": "#FF0000" #Red,
-        "4": "#FFFF00" #Yellow,
-        "3": "#00FF00" #Green,
-        "2": "#0000FF" #Blue,
+        "1": "#000000" ,#Black
+        "5": "#FF0000" ,#Red
+        "4": "#FFFF00" ,#Yellow
+        "3": "#00FF00" ,#Green
+        "2": "#0000FF" ,#Blue
         "6": "#FFFFFF" #White
     }
 
@@ -97,15 +95,14 @@ def Verifica_Cor(x,y,z):
         return mincolorname    
 
     color = findNearestColorName((r, g, b), colors)
-    print(color, " - ", r, g, b)
     
-
 
 
 class Communication(Thread):
     def __init__(self):
         self.ir_value = 0
         self.ir2_value = 0
+        self.cor_value = 0
         Thread.__init__(self)
 
     def run(self):
@@ -113,17 +110,16 @@ class Communication(Thread):
         while True:
             try:
                 Cliente = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                Cliente.bind(('169.255.168.150', 3561))
-                Cliente.listen(1)
+                Cliente.bind(('169.255.168.152', 3563))
+                Cliente.listen(2)
 
                 while True:
                     Msg, Endereco_Cliente = Cliente.accept()
                     Dados = str(Msg.recv(1024).decode()).split(",")
                     self.ir_value = int(Dados[0])
                     self.ir2_value = int(Dados[1])
-                    Verifica_Cor([int(Dados[2]), int(Dados[3]), int(Dados[4])])
+                    self.cor_value = int(Verifica_Cor(int(Dados[2]), int(Dados[3]), int(Dados[4])))
                     if Estado == -1:
-                        print("Conectado")
                         Estado = 0
 
                 Cliente.close()
@@ -144,7 +140,7 @@ def giraRobo(graus, tempo = 2): #90 > 0: direita else: esquerda
         m2.run_to_rel_pos(position_sp=-(razaoRobo*graus),speed_sp=180,stop_action="brake")
     else:
         m1.run_to_rel_pos(position_sp=-(razaoRobo*(graus*-1)),speed_sp=180,stop_action="brake")
-        m2.run_to_rel_pos(position_sp=(zaoRobo*(graus*-1)),speed_sp=180,stop_action="brake")
+        m2.run_to_rel_pos(position_sp=(razaoRobo*(graus*-1)),speed_sp=180,stop_action="brake")
     if tempo != 0:
         time.sleep(tempo)
 
@@ -477,6 +473,13 @@ while True:
                 time.sleep(10)
     elif Estado == 42:
         scan_gasoduto()
+    elif Estado == 50:
+        while True:
+            print(Comm.cor_value)
+            '''m1.run_forever(speed_sp=150)
+            m2.run_forever(speed_sp=150)'''
+            time.sleep(5)
+
 '''
 
 cont = 0
