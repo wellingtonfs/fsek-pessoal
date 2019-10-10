@@ -19,17 +19,17 @@ cor = ColorSensor('in1') #2
 cor2 = ColorSensor('in2') #4
 '''
 us = UltrasonicSensor('in3')
-us2 = UltrasonicSensor('in4')
+#us2 = UltrasonicSensor('in4')
 
 Sensor_Cor[0].mode = 'COL-COLOR'
 Sensor_Cor[1].mode = 'COL-COLOR'
 us.mode = 'US-DIST-CM'
-us2.mode = 'US-DIST-CM'
+#us2.mode = 'US-DIST-CM'
 
-'''
-ir = InfraredSensor('in3')
-ir2 = InfraredSensor('in1')
-'''
+
+ir = InfraredSensor('in4') #Era no 3
+#ir2 = InfraredSensor('in1')
+
 
 '''
 ir.mode = 'IR-PROX'
@@ -44,7 +44,7 @@ Tempo_Cor = 0
 dif_temp = 0
 
 #------FIM DAS VARIÁVEIS
-
+'''
 def convertHSV(r, g, b):
     h, s, v = colorsys.rgb_to_hsv(r, g, b)
     return (h, s, v)
@@ -129,18 +129,23 @@ class Communication(Thread):
 
 Comm = Communication()
 Comm.daemon = True
-Comm.start()
+Comm.start()'''
 
 #------Inicio Funções:
 
 def giraRobo(graus, tempo = 2): #90 > 0: direita else: esquerda
-    razaoRobo = 5.5 / 3.0
+    razaoRobo = 5.25 / 3.0
+
+    m1.stop(stop_action="brake")
+    m2.stop(stop_action="brake")
+    time.sleep(0.3)
+
     if graus > 0:
-        m1.run_to_rel_pos(position_sp=(razaoRobo*graus),speed_sp=180,stop_action="brake")
-        m2.run_to_rel_pos(position_sp=-(razaoRobo*graus),speed_sp=180,stop_action="brake")
+        m1.run_to_rel_pos(position_sp=(razaoRobo*graus),speed_sp=280,stop_action="brake")
+        m2.run_to_rel_pos(position_sp=-(razaoRobo*graus),speed_sp=280,stop_action="brake")
     else:
-        m1.run_to_rel_pos(position_sp=-(razaoRobo*(graus*-1)),speed_sp=180,stop_action="brake")
-        m2.run_to_rel_pos(position_sp=(razaoRobo*(graus*-1)),speed_sp=180,stop_action="brake")
+        m1.run_to_rel_pos(position_sp=-(razaoRobo*(graus*-1)),speed_sp=280,stop_action="brake")
+        m2.run_to_rel_pos(position_sp=(razaoRobo*(graus*-1)),speed_sp=280,stop_action="brake")
     if tempo != 0:
         time.sleep(tempo)
 
@@ -313,10 +318,62 @@ def AchouCano():
             print(str(tempo_g[0]))
             time.sleep(10)
 
+def scan_sup():
+    ti, tf = -1, -1
+    m1.run_forever(speed_sp=150)
+    m2.run_forever(speed_sp=150)
+    if alinhar(2) == 0:
+        m1.run_forever(speed_sp=150)
+        m2.run_forever(speed_sp=150)
+        time.sleep(2)
+        giraRobo(-90)
+    while True:
+        if (us.value() <= 570):
+            while (110 < us.value() < 338):
+                m1.run_forever(speed_sp=150)
+                m2.run_forever(speed_sp=150)
+            m1.stop(stop_action="brake")
+            m2.stop(stop_action="brake")
+            time.sleep(2)
+            ti = time.time()
+
+            while (338 < us.value() < 570):
+                m1.run_forever(speed_sp=150)
+                m2.run_forever(speed_sp=150)
+                time.sleep(0.5)
+            tf = time.time()
+            m1.stop(stop_action="brake")
+            m2.stop(stop_action="brake")
+            time.sleep(2)
+
+        x = ((((tf-ti)/2)*1000)+1000)
+
+        m1.run_timed(time_sp=x, speed_sp=-150, stop_action="brake")
+        m2.run_timed(time_sp=x, speed_sp=-150, stop_action="brake")
+        time.sleep(5)
+
+        giraRobo(90)
+
+        m1.stop(stop_action="brake")
+        m2.stop(stop_action="brake")
+        
+        while (ir.value() > 27):
+            print ("%d" %ir.value())
+            m1.run_forever(speed_sp=150)
+            m2.run_forever(speed_sp=150)
+            time.sleep(2)
+
+        m1.stop(stop_action="brake")
+        m2.stop(stop_action="brake")
+        time.sleep(30)
+
 def scan_gasoduto():
     tempo_inicio, tempos_pista, anterior_leitura = -1, [], 0
+    ti, tf = -1, -1
     tempo_dez, tempo_quinze, tempo_vinte = 0,0,0
-    if alinhar(3) == 0:
+    m1.run_forever(speed_sp=150)
+    m2.run_forever(speed_sp=150)
+    if alinhar(2) == 0:
         m1.run_forever(speed_sp=150)
         m2.run_forever(speed_sp=150)
         time.sleep(2)
@@ -443,7 +500,14 @@ while True:
                 AchouCano()
         #descobrir os espaços na tubulação
     elif Estado == 3:
-        pass
+        m1.run_forever(speed_sp=150)
+        m2.run_forever(speed_sp=150)
+
+        if alinhar(2) == 0:
+            m1.run_to_rel_pos(position_sp=700,speed_sp=150,stop_action="brake")
+            m2.run_to_rel_pos(position_sp=700,speed_sp=150,stop_action="brake")
+            time.sleep(2)
+            giraRobo(-90) 
         #voltar para pegar os tubos
     elif Estado == 4:
         m1.run_forever(speed_sp=300)
@@ -480,6 +544,8 @@ while True:
             m2.run_forever(speed_sp=150)'''
             time.sleep(5)
 
+    elif Estado == 69:
+        scan_sup()
 '''
 
 cont = 0
@@ -554,15 +620,3 @@ cont = 0
     m2.stop(stop_action="brake")
 
 '''
-
-
-
-
-                
-
-
-
-
-                
-                
-                

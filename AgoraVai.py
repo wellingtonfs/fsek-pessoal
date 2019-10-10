@@ -9,20 +9,20 @@ m1 = LargeMotor('outD')
 m2 = LargeMotor('outC')
 # m3 = MediumMotor('outB')
 
-Sensor_Cor = [ColorSensor('in1'), ColorSensor('in2')]
+#Sensor_Cor = [ColorSensor('in1'), ColorSensor('in2')]
 #Sensor_Cor[0] = ColorSensor('in1') #2
 #Sensor_Cor[1] = ColorSensor('in2') #4
 us = UltrasonicSensor('in3')
-# us2 = UltrasonicSensor('in4')
-# ir = InfraredSensor('in3')
+#us2 = UltrasonicSensor('in4')
+ir = InfraredSensor('in4')
 # ir2 = InfraredSensor('in1')
 # tou = TouchSensor('in4')
 
-Sensor_Cor[0].mode = 'COL-COLOR'
-Sensor_Cor[1].mode = 'COL-COLOR'
+#Sensor_Cor[0].mode = 'COL-COLOR'
+#Sensor_Cor[1].mode = 'COL-COLOR'
 us.mode = 'US-DIST-CM'
-# us2.mode = 'US-DIST-CM'
-# ir.mode = 'IR-PROX'
+#us2.mode = 'US-DIST-CM'
+ir.mode = 'IR-PROX'
 # ir2.mode = 'IR-PROX'
 
 # while True:
@@ -71,10 +71,10 @@ while True:
     if well:
         m1.run_forever(speed_sp=150)
         m2.run_forever(speed_sp=150)
-        time.sleep(1)'''
+        time.sleep(1)
 
-'''while True:
-    print ("%d" %us.value())'''
+while True:
+    print ("%d" %us.value())
 
 def alinhar(c): #Essa função alinha o lego a uma cor especifica c.
     if Sensor_Cor[0].value() == c and Sensor_Cor[1].value() == c:
@@ -147,12 +147,12 @@ def giraRobo(graus, tempo = 2): #90 > 0: direita else: esquerda
 m1.run_forever(speed_sp=150)
 m2.run_forever(speed_sp=150)
 
-if alinhar(3) == 0:
+if alinhar(2) == 0:
     m1.run_to_rel_pos(position_sp=700,speed_sp=150,stop_action="brake")
     m2.run_to_rel_pos(position_sp=700,speed_sp=150,stop_action="brake")
     time.sleep(2)
     giraRobo(-90)       
-'''
+
 while (us.value() > 230):
     m1.run_forever(speed_sp=150)
     m2.run_forever(speed_sp=150)
@@ -165,3 +165,17 @@ while (us.value() > 230):
     m1.run_forever(speed_sp=-150)
     m2.run_forever(speed_sp=-150)
 '''
+
+'''while True:
+    print ("%d" %us.value())'''
+
+m1.run_forever(speed_sp=150)
+m2.run_forever(speed_sp=150)
+
+while (ir.value() > 27):
+    print ("%d" %ir.value())
+    m1.run_forever(speed_sp=150)
+    m2.run_forever(speed_sp=150)
+    time.sleep(2)
+m1.stop(stop_action="brake")
+m2.stop(stop_action="brake")
