@@ -25,10 +25,23 @@ ir = InfraredSensor('in4')
 #us2.mode = 'US-DIST-CM'
 ir.mode = 'IR-PROX'
 # ir2.mode = 'IR-PROX'
-'''
+
+#Anda até 27cm do gasoduto
 while (ir.value() > 27): 
     m1.run_forever(speed_sp=150)
     m2.run_forever(speed_sp=150)
+    time.sleep(0.5)
+m1.stop(stop_action="brake")
+m2.stop(stop_action="brake")
+
+#Sobe a garra
+m3.run_to_rel_pos(position_sp=-120,speed_sp=150,stop_action="brake")
+m4.run_to_rel_pos(position_sp=120,speed_sp=150,stop_action="brake")
+
+while (ir.value() > 10):
+    m1.run_forever(speed_sp=150)
+    m2.run_forever(speed_sp=150)
+    time.sleep(0.5)
 m1.stop(stop_action="brake")
 m2.stop(stop_action="brake")
 
@@ -36,23 +49,19 @@ m2.stop(stop_action="brake")
 m3.run_to_rel_pos(position_sp=-120,speed_sp=150,stop_action="brake")
 m4.run_to_rel_pos(position_sp=120,speed_sp=150,stop_action="brake")
 
+#Anda para tras
 while (ir.value() > 18):
-    m1.run_forever(speed_sp=150)
-    m2.run_forever(speed_sp=150)
+    m1.run_forever(speed_sp=-150)
+    m2.run_forever(speed_sp=-150)
+    time.sleep(0.5)
 m1.stop(stop_action="brake")
 m2.stop(stop_action="brake")
 
-#Sobe a garra
-m3.run_to_rel_pos(position_sp=-70,speed_sp=150,stop_action="brake")
-m4.run_to_rel_pos(position_sp=70,speed_sp=150,stop_action="brake")
-
-while (ir.value() < 18):
-    m1.run_forever(speed_sp=-150)
-    m2.run_forever(speed_sp=-150)
-
+#Desce a garra
 m3.run_to_rel_pos(position_sp=-120,speed_sp=150,stop_action="brake")
 m4.run_to_rel_pos(position_sp=120,speed_sp=150,stop_action="brake")
+
 '''
 while True:
     print ("%d" %ir.value())
-
+'''

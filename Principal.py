@@ -99,7 +99,7 @@ def Verifica_Cor(x,y,z):
     color = findNearestColorName((r, g, b), colors)
     print(color, " - ", r, g, b)'''
     
-
+'''
 
 
 '''class Communication(Thread):
@@ -109,7 +109,6 @@ def Verifica_Cor(x,y,z):
         Thread.__init__(self)
 
     def run(self):
-        global Estado
         while True:
             try:
                 Cliente = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -129,11 +128,12 @@ def Verifica_Cor(x,y,z):
                 Cliente.close()
             except Exception as e:
                 print(e)
-                time.sleep(1)
+                time.sleep(0.5)
+        
 
 Comm = Communication()
 Comm.daemon = True
-Comm.start()'''
+Comm.start()
 
 #------Inicio Funções:
 
