@@ -37,7 +37,7 @@ ir2.mode = 'IR-PROX'
 '''
 
 #Variaveis de uso geral
-Estado = 50 #0 = inicio, 1 = ...
+Estado = 69 #0 = inicio, 1 = ...
 Pos_Cores = [[0,10],[0,15],[0,20]] #(x = 10), (y = 15), (z = 20) 
 Cor_Anterior = 0
 Tempo_Cor = 0
@@ -54,7 +54,7 @@ def convertRGB(h, s, v):
     return (r, g, b)
 
 def Verifica_Cor(x,y,z):
-    #(x, y, z) = Dados[2], Dados[3], Dados[4]
+    #(x, y, z) = cor3.value(0), cor3.value(1), cor3.value(2)
     x = x/1023
     y = y/1023
     z = z/1023
@@ -69,14 +69,16 @@ def Verifica_Cor(x,y,z):
     g = g * 255
     b = b * 255
     
-    
+    #Codigo Lucas
+    color_name = ""
+
     colors = {
-        "1": "#000000" ,#Black
-        "5": "#FF0000" ,#Red
-        "4": "#FFFF00" ,#Yellow
-        "3": "#00FF00" ,#Green
-        "2": "#0000FF" ,#Blue
-        "6": "#FFFFFF" #White
+        "Black": "#000000" #Black,
+        "Red": "#FF0000" #Red,
+        "Yellow": "#FFFF00" #Yellow,
+        "Green": "#00FF00" #Green,
+        "Blue": "#0000FF" #Blue,
+        "White": "#FFFFFF" #White
     }
 
     def rgbFromStr(s):
@@ -95,14 +97,15 @@ def Verifica_Cor(x,y,z):
         return mincolorname    
 
     color = findNearestColorName((r, g, b), colors)
+    print(color, " - ", r, g, b)'''
     
 
 
-class Communication(Thread):
+
+'''class Communication(Thread):
     def __init__(self):
         self.ir_value = 0
         self.ir2_value = 0
-        self.cor_value = 0
         Thread.__init__(self)
 
     def run(self):
@@ -110,16 +113,17 @@ class Communication(Thread):
         while True:
             try:
                 Cliente = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                Cliente.bind(('169.255.168.152', 3563))
-                Cliente.listen(2)
+                Cliente.bind(('169.255.168.150', 3561))
+                Cliente.listen(1)
 
                 while True:
                     Msg, Endereco_Cliente = Cliente.accept()
                     Dados = str(Msg.recv(1024).decode()).split(",")
                     self.ir_value = int(Dados[0])
                     self.ir2_value = int(Dados[1])
-                    self.cor_value = int(Verifica_Cor(int(Dados[2]), int(Dados[3]), int(Dados[4])))
+                    Verifica_Cor([int(Dados[2]), int(Dados[3]), int(Dados[4])])
                     if Estado == -1:
+                        print("Conectado")
                         Estado = 0
 
                 Cliente.close()
@@ -222,13 +226,49 @@ def Verificar_Ruido(Sensor): #fazer a função de ruido dos sensores de cor
     else:
         return Sensor_Cor[1].value()
 
-def Mov_Garra(Sentido): #0 = descer; 1 = subir;
+def Mov_Garra_Tubo(Sentido): #0 = descer; 1 = subir;
     global m3
     if Sentido:
         m3.run_to_rel_pos(position_sp=100, speed_sp=200)
     else:
         m3.run_to_rel_pos(position_sp=-250, speed_sp=200)
     time.sleep(2)
+
+def Mov_Garra_Gasoduto(Sentido): #0 = descer; 1 = subir;
+        #Anda até 27cm do gasoduto
+    while (ir.value() > 27): 
+        m1.run_forever(speed_sp=150)
+        m2.run_forever(speed_sp=150)
+        time.sleep(0.5)
+    m1.stop(stop_action="brake")
+    m2.stop(stop_action="brake")
+
+    #Sobe a garra
+    m3.run_to_rel_pos(position_sp=-120,speed_sp=150,stop_action="brake")
+    m4.run_to_rel_pos(position_sp=120,speed_sp=150,stop_action="brake")
+
+    while (ir.value() > 10):
+        m1.run_forever(speed_sp=150)
+        m2.run_forever(speed_sp=150)
+        time.sleep(0.5)
+    m1.stop(stop_action="brake")
+    m2.stop(stop_action="brake")
+
+    #Desce a garra
+    m3.run_to_rel_pos(position_sp=-120,speed_sp=150,stop_action="brake")
+    m4.run_to_rel_pos(position_sp=120,speed_sp=150,stop_action="brake")
+
+    #Anda para tras
+    while (ir.value() > 18):
+        m1.run_forever(speed_sp=-150)
+        m2.run_forever(speed_sp=-150)
+        time.sleep(0.5)
+    m1.stop(stop_action="brake")
+    m2.stop(stop_action="brake")
+
+    #Desce a garra
+    m3.run_to_rel_pos(position_sp=-120,speed_sp=150,stop_action="brake")
+    m4.run_to_rel_pos(position_sp=120,speed_sp=150,stop_action="brake")
 
 '''
 def Intervalos(Intervalo): #Saber se o intervalo ta crescendo, decrescendo ou os dois
@@ -537,13 +577,6 @@ while True:
                 time.sleep(10)
     elif Estado == 42:
         scan_gasoduto()
-    elif Estado == 50:
-        while True:
-            print(Comm.cor_value)
-            '''m1.run_forever(speed_sp=150)
-            m2.run_forever(speed_sp=150)'''
-            time.sleep(5)
-
     elif Estado == 69:
         scan_sup()
 '''
