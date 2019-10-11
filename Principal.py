@@ -96,40 +96,38 @@ def Verifica_Cor(x,y,z):
 
     color = findNearestColorName((r, g, b), colors)
     
-
+'''
 
 class Communication(Thread):
     def __init__(self):
         self.ir_value = 0
         self.ir2_value = 0
-        self.cor_value = 0
         Thread.__init__(self)
 
     def run(self):
-        global Estado
         while True:
             try:
-                Cliente = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                Cliente.bind(('169.255.168.152', 3563))
-                Cliente.listen(2)
-
-                while True:
-                    Msg, Endereco_Cliente = Cliente.accept()
-                    Dados = str(Msg.recv(1024).decode()).split(",")
-                    self.ir_value = int(Dados[0])
-                    self.ir2_value = int(Dados[1])
-                    self.cor_value = int(Verifica_Cor(int(Dados[2]), int(Dados[3]), int(Dados[4])))
-                    if Estado == -1:
-                        Estado = 0
-
-                Cliente.close()
+                with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+                    s.bind(('169.255.168.150', 3562))
+                    s.listen()
+                    while True:
+                        conn, addr = s.accept()
+                        with conn:
+                            print('Connected by', addr)
+                            while True:
+                                data = conn.recv(1024)
+                                print(data)
+                                if not data:
+                                    break
             except Exception as e:
                 print(e)
-                time.sleep(1)
+                time.sleep(0.5)
+        
 
 Comm = Communication()
 Comm.daemon = True
-Comm.start()'''
+Comm.start()
 
 #------Inicio Funções:
 
