@@ -9,11 +9,12 @@ import colorsys
 #------VARIÁVEIS DO PROGRAMA
 
 #Sensores
-m1 = LargeMotor('outD')
-m2 = LargeMotor('outC')
-m3 = MediumMotor('outB')
+m1 = LargeMotor('outD') #Esquerdo
+m2 = LargeMotor('outC') #Direito
+m3 = MediumMotor('outB') #Motor mais alto
+m4 = MediumMotor('outA') #Motor mais baixo
 
-Sensor_Cor = [ColorSensor('in1'), ColorSensor('in2')]
+Sensor_Cor = [ColorSensor('in1'), ColorSensor('in2')] #1 = Esquerdo, 2 = Direito
 '''
 cor = ColorSensor('in1') #2
 cor2 = ColorSensor('in2') #4
@@ -99,10 +100,7 @@ def Verifica_Cor(x,y,z):
     color = findNearestColorName((r, g, b), colors)
     print(color, " - ", r, g, b)'''
     
-'''
-
-
-'''class Communication(Thread):
+class Communication(Thread):
     def __init__(self):
         self.ir_value = 0
         self.ir2_value = 0
@@ -234,7 +232,7 @@ def Mov_Garra_Tubo(Sentido): #0 = descer; 1 = subir;
         m3.run_to_rel_pos(position_sp=-250, speed_sp=200)
     time.sleep(2)
 
-def Mov_Garra_Gasoduto(Sentido): #0 = descer; 1 = subir;
+def Mov_Garra_Gasoduto():
         #Anda até 27cm do gasoduto
     while (ir.value() > 27): 
         m1.run_forever(speed_sp=150)
