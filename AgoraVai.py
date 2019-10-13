@@ -28,7 +28,15 @@ ir.mode = 'US-DIST-CM'
 #ir.mode = 'IR-PROX'
 # ir2.mode = 'IR-PROX'
 
-def Mov_Garra(Sentido, Pos): #0 = descer; 1 = subir;
+def Mov_Garra_Analog(Sentido, Pos):
+    if Sentido:
+        m3.run_to_rel_pos(position_sp=(-1)*Pos,speed_sp=150,stop_action="brake")
+        m4.run_to_rel_pos(position_sp=Pos,speed_sp=150,stop_action="brake")
+    else:
+        m3.run_to_rel_pos(position_sp=Pos,speed_sp=150,stop_action="brake")
+        m4.run_to_rel_pos(position_sp=(-1)*Pos,speed_sp=150,stop_action="brake")
+
+def Mov_Garra_Sensor(Sentido, Pos): #0 = descer; 1 = subir;
     '''if Sentido:
         m3.run_to_rel_pos(position_sp=100, speed_sp=200)
     else:
@@ -42,21 +50,14 @@ def Mov_Garra(Sentido, Pos): #0 = descer; 1 = subir;
                 m4.run_to_rel_pos(position_sp=Pos,speed_sp=150,stop_action="brake")
                 time.sleep(0.5)
     else: 
-        while (ir.value() > 25):
+        while (ir.value() > 45):
                 print (ir.value())
                 m3.run_to_rel_pos(position_sp=Pos,speed_sp=150,stop_action="brake")
                 m4.run_to_rel_pos(position_sp=(-1)*Pos,speed_sp=150,stop_action="brake")
                 time.sleep(0.5)
     time.sleep(2)
 
-if (ir.value() < 400):
-    while (ir.value() < 100):
-        print (ir.value())
-        Mov_Garra(1)
-    time.sleep(2)
-
-print ("Sem tubo na frente")
-print (ir.value())
+Mov_Garra_Sensor(1, 100)
 
 while True:
     m1.run_forever(speed_sp=150)
@@ -64,44 +65,19 @@ while True:
     if (ir.value() < 170):
         m1.stop(stop_action="brake")
         m2.stop(stop_action="brake")
-    break    
+    break
 
-    '''
-    while (ir.value() > 170):
-        m1.run_forever(speed_sp=150)
-        m2.run_forever(speed_sp=150)
+#Desce a garra
+Mov_Garra_Analog(0, 100)
+
+#Anda para tras     
+while (ir.value() < 200):
+    m1.run_forever(speed_sp=-150)
+    m2.run_forever(speed_sp=-150)
     time.sleep(0.5)
-    m1.stop(stop_action="brake")
-    m2.stop(stop_action="brake")
-    time.sleep(2)
-
-    #Sobe a garra
-    m3.run_to_rel_pos(position_sp=-120,speed_sp=150,stop_action="brake")
-    m4.run_to_rel_pos(position_sp=120,speed_sp=150,stop_action="brake")
-    
-    while (ir.value() > 10):
-        m1.run_forever(speed_sp=150)
-        m2.run_forever(speed_sp=150)
-        time.sleep(0.5)
-    m1.stop(stop_action="brake")
-    m2.stop(stop_action="brake")
-    '''
-
-    #Desce a garra
-    Mov_Garra(0, 100)
-
-    #Anda para tras     
-    while (ir.value() < 200):
-        m1.run_forever(speed_sp=-150)
-        m2.run_forever(speed_sp=-150)
-        time.sleep(0.5)
-    m1.stop(stop_action="brake")
-    m2.stop(stop_action="brake")
-
-    #Desce a garra
-    Mov_Garra(0, 200)
+m1.stop(stop_action="brake")
+m2.stop(stop_action="brake")
 '''
-
 while True:
     print ("%d" %ir.value())
 

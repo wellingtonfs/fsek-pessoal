@@ -223,7 +223,7 @@ def Verificar_Ruido(Sensor): #fazer a função de ruido dos sensores de cor
     else:
         return Sensor_Cor[1].value()
 
-def Mov_Garra(Sentido, Pos): #0 = descer; 1 = subir;
+def Mov_Garra_Sensor(Sentido, Pos): #0 = descer; 1 = subir;
     '''if Sentido:
         m3.run_to_rel_pos(position_sp=100, speed_sp=200)
     else:
@@ -237,12 +237,20 @@ def Mov_Garra(Sentido, Pos): #0 = descer; 1 = subir;
                 m4.run_to_rel_pos(position_sp=Pos,speed_sp=150,stop_action="brake")
                 time.sleep(0.5)
     else: 
-        while (ir.value() > 25):
+        while (ir.value() > 45):
                 print (ir.value())
                 m3.run_to_rel_pos(position_sp=Pos,speed_sp=150,stop_action="brake")
                 m4.run_to_rel_pos(position_sp=(-1)*Pos,speed_sp=150,stop_action="brake")
                 time.sleep(0.5)
     time.sleep(2)
+
+def Mov_Garra_Analog(Sentido, Pos):
+    if Sentido:
+        m3.run_to_rel_pos(position_sp=(-1)*Pos,speed_sp=150,stop_action="brake")
+        m4.run_to_rel_pos(position_sp=Pos,speed_sp=150,stop_action="brake")
+    else:
+        m3.run_to_rel_pos(position_sp=Pos,speed_sp=150,stop_action="brake")
+        m4.run_to_rel_pos(position_sp=(-1)*Pos,speed_sp=150,stop_action="brake")
 
 def Mov_Garra_Gasoduto():
     if (ir.value() < 120):
