@@ -15,7 +15,8 @@ m4 = MediumMotor('outA')
 #Sensor_Cor[1] = ColorSensor('in2') #4
 #us = UltrasonicSensor('in3')
 #us2 = UltrasonicSensor('in4')
-ir = InfraredSensor('in4')
+#ir = InfraredSensor('in4')
+ir = UltrasonicSensor('in4')
 # ir2 = InfraredSensor('in1')
 # tou = TouchSensor('in4')
 
@@ -23,52 +24,84 @@ ir = InfraredSensor('in4')
 #Sensor_Cor[1].mode = 'COL-COLOR'
 #us.mode = 'US-DIST-CM'
 #us2.mode = 'US-DIST-CM'
-ir.mode = 'IR-PROX'
+ir.mode = 'US-DIST-CM'
+#ir.mode = 'IR-PROX'
 # ir2.mode = 'IR-PROX'
 
-#Anda até 27cm do gasoduto
+def Mov_Garra(Sentido, Pos): #0 = descer; 1 = subir;
+    '''if Sentido:
+        m3.run_to_rel_pos(position_sp=100, speed_sp=200)
+    else:
+        m3.run_to_rel_pos(position_sp=-250, speed_sp=200)'''
+    
+    if Sentido: 
+        if (ir.value() < 400):
+            while (ir.value() < 100):
+                print (ir.value())
+                m3.run_to_rel_pos(position_sp=(-1)*Pos,speed_sp=150,stop_action="brake")
+                m4.run_to_rel_pos(position_sp=Pos,speed_sp=150,stop_action="brake")
+                time.sleep(0.5)
+    else: 
+        while (ir.value() > 25):
+                print (ir.value())
+                m3.run_to_rel_pos(position_sp=Pos,speed_sp=150,stop_action="brake")
+                m4.run_to_rel_pos(position_sp=(-1)*Pos,speed_sp=150,stop_action="brake")
+                time.sleep(0.5)
+    time.sleep(2)
 
-while (ir.value() > 0 and ir.value() < 45):
-    m3.run_to_rel_pos(position_sp=-50,speed_sp=150,stop_action="brake")
-    m4.run_to_rel_pos(position_sp=50,speed_sp=150,stop_action="brake")
-time.sleep(2)
-      
-while (ir.value() > 15): 
+if (ir.value() < 400):
+    while (ir.value() < 100):
+        print (ir.value())
+        Mov_Garra(1)
+    time.sleep(2)
+
+print ("Sem tubo na frente")
+print (ir.value())
+
+while True:
     m1.run_forever(speed_sp=150)
     m2.run_forever(speed_sp=150)
+    if (ir.value() < 170):
+        m1.stop(stop_action="brake")
+        m2.stop(stop_action="brake")
+    break    
+
+    '''
+    while (ir.value() > 170):
+        m1.run_forever(speed_sp=150)
+        m2.run_forever(speed_sp=150)
     time.sleep(0.5)
-m1.stop(stop_action="brake")
-m2.stop(stop_action="brake")
-time.sleep(2)
+    m1.stop(stop_action="brake")
+    m2.stop(stop_action="brake")
+    time.sleep(2)
+
+    #Sobe a garra
+    m3.run_to_rel_pos(position_sp=-120,speed_sp=150,stop_action="brake")
+    m4.run_to_rel_pos(position_sp=120,speed_sp=150,stop_action="brake")
+    
+    while (ir.value() > 10):
+        m1.run_forever(speed_sp=150)
+        m2.run_forever(speed_sp=150)
+        time.sleep(0.5)
+    m1.stop(stop_action="brake")
+    m2.stop(stop_action="brake")
+    '''
+
+    #Desce a garra
+    Mov_Garra(0, 100)
+
+    #Anda para tras     
+    while (ir.value() < 200):
+        m1.run_forever(speed_sp=-150)
+        m2.run_forever(speed_sp=-150)
+        time.sleep(0.5)
+    m1.stop(stop_action="brake")
+    m2.stop(stop_action="brake")
+
+    #Desce a garra
+    Mov_Garra(0, 200)
 '''
-#Sobe a garra
-m3.run_to_rel_pos(position_sp=-120,speed_sp=150,stop_action="brake")
-m4.run_to_rel_pos(position_sp=120,speed_sp=150,stop_action="brake")
 
-while (ir.value() > 10):
-    m1.run_forever(speed_sp=150)
-    m2.run_forever(speed_sp=150)
-    time.sleep(0.5)
-m1.stop(stop_action="brake")
-m2.stop(stop_action="brake")
-'''
-#Desce a garra
-m3.run_to_rel_pos(position_sp=120,speed_sp=150,stop_action="brake")
-m4.run_to_rel_pos(position_sp=-120,speed_sp=150,stop_action="brake")
-
-#Anda para tras     
-while (ir.value() > 18):
-    m1.run_forever(speed_sp=-150)
-    m2.run_forever(speed_sp=-150)
-    time.sleep(0.5)
-m1.stop(stop_action="brake")
-m2.stop(stop_action="brake")
-
-#Desce a garra
-m3.run_to_rel_pos(position_sp=-120,speed_sp=150,stop_action="brake")
-m4.run_to_rel_pos(position_sp=120,speed_sp=150,stop_action="brake")
-
-'''
 while True:
     print ("%d" %ir.value())
 

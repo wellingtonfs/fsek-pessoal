@@ -31,7 +31,6 @@ us.mode = 'US-DIST-CM'
 ir = InfraredSensor('in4') #Era no 3
 #ir2 = InfraredSensor('in1')
 
-
 '''
 ir.mode = 'IR-PROX'
 ir2.mode = 'IR-PROX'
@@ -224,37 +223,68 @@ def Verificar_Ruido(Sensor): #fazer a função de ruido dos sensores de cor
     else:
         return Sensor_Cor[1].value()
 
-def Mov_Garra_Tubo(Sentido): #0 = descer; 1 = subir;
-    global m3
-    if Sentido:
+def Mov_Garra(Sentido, Pos): #0 = descer; 1 = subir;
+    '''if Sentido:
         m3.run_to_rel_pos(position_sp=100, speed_sp=200)
     else:
-        m3.run_to_rel_pos(position_sp=-250, speed_sp=200)
+        m3.run_to_rel_pos(position_sp=-250, speed_sp=200)'''
+    
+    if Sentido: 
+        if (ir.value() < 400):
+            while (ir.value() < 100):
+                print (ir.value())
+                m3.run_to_rel_pos(position_sp=(-1)*Pos,speed_sp=150,stop_action="brake")
+                m4.run_to_rel_pos(position_sp=Pos,speed_sp=150,stop_action="brake")
+                time.sleep(0.5)
+    else: 
+        while (ir.value() > 25):
+                print (ir.value())
+                m3.run_to_rel_pos(position_sp=Pos,speed_sp=150,stop_action="brake")
+                m4.run_to_rel_pos(position_sp=(-1)*Pos,speed_sp=150,stop_action="brake")
+                time.sleep(0.5)
     time.sleep(2)
 
 def Mov_Garra_Gasoduto():
-        #Anda até 27cm do gasoduto
-    while (ir.value() > 27): 
-        m1.run_forever(speed_sp=150)
-        m2.run_forever(speed_sp=150)
+    if (ir.value() < 120):
+        while (ir.value() < 90):
+            print (ir.value())
+            m3.run_to_rel_pos(position_sp=-50,speed_sp=150,stop_action="brake")
+            m4.run_to_rel_pos(position_sp=50,speed_sp=150,stop_action="brake")
+
+        while (ir.value() > 127): 
+            m1.run_forever(speed_sp=150)
+            m2.run_forever(speed_sp=150)
         time.sleep(0.5)
-    m1.stop(stop_action="brake")
-    m2.stop(stop_action="brake")
+        m1.stop(stop_action="brake")
+        m2.stop(stop_action="brake")
+        time.sleep(2)
+        '''
+        #Sobe a garra
+        m3.run_to_rel_pos(position_sp=-120,speed_sp=150,stop_action="brake")
+        m4.run_to_rel_pos(position_sp=120,speed_sp=150,stop_action="brake")
+        
+        while (ir.value() > 10):
+            m1.run_forever(speed_sp=150)
+            m2.run_forever(speed_sp=150)
+            time.sleep(0.5)
+        m1.stop(stop_action="brake")
+        m2.stop(stop_action="brake")
+        '''
+        #Desce a garra
+        m3.run_to_rel_pos(position_sp=50,speed_sp=150,stop_action="brake")
+        m4.run_to_rel_pos(position_sp=-50,speed_sp=150,stop_action="brake")
 
-    #Sobe a garra
-    m3.run_to_rel_pos(position_sp=-120,speed_sp=150,stop_action="brake")
-    m4.run_to_rel_pos(position_sp=120,speed_sp=150,stop_action="brake")
+        #Anda para tras     
+        while (ir.value() > 127):
+            m1.run_forever(speed_sp=-150)
+            m2.run_forever(speed_sp=-150)
+            time.sleep(0.5)
+        m1.stop(stop_action="brake")
+        m2.stop(stop_action="brake")
 
-    while (ir.value() > 10):
-        m1.run_forever(speed_sp=150)
-        m2.run_forever(speed_sp=150)
-        time.sleep(0.5)
-    m1.stop(stop_action="brake")
-    m2.stop(stop_action="brake")
-
-    #Desce a garra
-    m3.run_to_rel_pos(position_sp=-120,speed_sp=150,stop_action="brake")
-    m4.run_to_rel_pos(position_sp=120,speed_sp=150,stop_action="brake")
+        #Desce a garra
+        m3.run_to_rel_pos(position_sp=-120,speed_sp=150,stop_action="brake")
+        m4.run_to_rel_pos(position_sp=120,speed_sp=150,stop_action="brake")
 
     #Anda para tras
     while (ir.value() > 18):
