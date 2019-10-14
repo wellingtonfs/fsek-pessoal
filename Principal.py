@@ -37,7 +37,7 @@ ir2.mode = 'IR-PROX'
 '''
 
 #Variaveis de uso geral
-Estado = 69 #0 = inicio, 1 = ...
+Estado = 96 #0 = inicio, 1 = ...
 Pos_Cores = [[0,10],[0,15],[0,20]] #(x = 10), (y = 15), (z = 20) 
 Cor_Anterior = 0
 Tempo_Cor = 0
@@ -160,6 +160,30 @@ def Emergencia(graus):
     m1.run_forever(speed_sp=300)
     m2.run_forever(speed_sp=300)
 
+def gyro():
+    while True:
+        baseAngle = gy.value()
+        print("Inicio loop")
+        print("Angulo Base: ", baseAngle)
+
+        mdiff.turn_left(SpeedRPM(40), 90)
+
+        time.sleep(0.5)
+
+        angle = abs(gy.value() - baseAngle)
+        diffAng = angle - 90
+
+        print("Angulo Calculado: ", angle)
+        print("Diferenca: ", diffAng)
+
+        if(diffAng < 0):
+            mdiff.turn_left(SpeedRPM(40), abs(diffAng))
+        else:
+            mdiff.turn_right(SpeedRPM(40), abs(diffAng))
+
+
+        time.sleep(2)
+
 def blakeLine(): #Walk the black line to learning colors.
     global Estado, Cor_Anterior
     x, y, z, ini = -1, -1, -1, False #variaveis para salvar as posições das cores
@@ -247,6 +271,7 @@ def Mov_Garra_Analog(Sentido, Pos):
         m3.run_to_rel_pos(position_sp=Pos,speed_sp=150,stop_action="brake")
         m4.run_to_rel_pos(position_sp=(-1)*Pos,speed_sp=150,stop_action="brake")
 
+'''
 def Mov_Garra_Gasoduto():
     if (ir.value() < 120):
         while (ir.value() < 90):
@@ -261,7 +286,7 @@ def Mov_Garra_Gasoduto():
         m1.stop(stop_action="brake")
         m2.stop(stop_action="brake")
         time.sleep(2)
-        '''
+
         #Sobe a garra
         m3.run_to_rel_pos(position_sp=-120,speed_sp=150,stop_action="brake")
         m4.run_to_rel_pos(position_sp=120,speed_sp=150,stop_action="brake")
@@ -272,7 +297,7 @@ def Mov_Garra_Gasoduto():
             time.sleep(0.5)
         m1.stop(stop_action="brake")
         m2.stop(stop_action="brake")
-        '''
+
         #Desce a garra
         m3.run_to_rel_pos(position_sp=50,speed_sp=150,stop_action="brake")
         m4.run_to_rel_pos(position_sp=-50,speed_sp=150,stop_action="brake")
@@ -301,7 +326,7 @@ def Mov_Garra_Gasoduto():
     m3.run_to_rel_pos(position_sp=-120,speed_sp=150,stop_action="brake")
     m4.run_to_rel_pos(position_sp=120,speed_sp=150,stop_action="brake")
 
-'''
+
 def Intervalos(Intervalo): #Saber se o intervalo ta crescendo, decrescendo ou os dois
     c, d = 0, 0 #crescer / decrescer
     for i in range(1, len(Intervalo), 1):
@@ -610,6 +635,8 @@ while True:
         scan_gasoduto()
     elif Estado == 69:
         scan_sup()
+    elif Estado == 96:
+        gyro()
 '''
 
 cont = 0
