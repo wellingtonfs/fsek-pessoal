@@ -37,11 +37,6 @@ def Mov_Garra_Analog(Sentido, Pos):
         m4.run_to_rel_pos(position_sp=(-1)*Pos,speed_sp=150,stop_action="brake")
 
 def Mov_Garra_Sensor(Sentido, Pos): #0 = descer; 1 = subir;
-    '''if Sentido:
-        m3.run_to_rel_pos(position_sp=100, speed_sp=200)
-    else:
-        m3.run_to_rel_pos(position_sp=-250, speed_sp=200)'''
-    
     if Sentido: 
         if (ir.value() < 400):
             while (ir.value() < 100):
@@ -58,15 +53,16 @@ def Mov_Garra_Sensor(Sentido, Pos): #0 = descer; 1 = subir;
     time.sleep(2)
 
 Mov_Garra_Sensor(1, 100)
-'''
-
 while True:
+    print ("%d" %ir.value())
+'''
+while (ir.value() > 170):
     m1.run_forever(speed_sp=150)
     m2.run_forever(speed_sp=150)
-    if (ir.value() < 170):
-        m1.stop(stop_action="brake")
-        m2.stop(stop_action="brake")
-    break
+    time.sleep(0.5)
+m1.stop(stop_action="brake")
+m2.stop(stop_action="brake")
+time.sleep(0.5)
 
 #Desce a garra
 Mov_Garra_Analog(0, 100)
@@ -77,5 +73,4 @@ while (ir.value() < 200):
     m2.run_forever(speed_sp=-150)
     time.sleep(0.5)
 m1.stop(stop_action="brake")
-m2.stop(stop_action="brake")
-'''
+m2.stop(stop_action="brake")'''
