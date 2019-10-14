@@ -3,7 +3,7 @@
 from ev3dev.ev3 import *
 from threading import *
 import time, socket
-import math
+import math, json
 import colorsys
 
 #------VARIÁVEIS DO PROGRAMA
@@ -108,26 +108,29 @@ class Communication(Thread):
     def run(self):
         while True:
             try:
-                Cliente = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                Cliente.bind(('169.255.168.150', 3561))
-                Cliente.listen(1)
+                with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+                    s.bind(('169.255.168.150', 3563))
+                    s.listen()
+                    while True:
+                        conn, addr = s.accept()
+                        with conn:
+                            #print('Connected by', addr)
+                            while True:
+                                data = conn.recv(1024)
 
-                while True:
-                    Msg, Endereco_Cliente = Cliente.accept()
-                    Dados = str(Msg.recv(1024).decode()).split(",")
-                    self.ir_value = int(Dados[0])
-                    self.ir2_value = int(Dados[1])
-                    Verifica_Cor([int(Dados[2]), int(Dados[3]), int(Dados[4])])
-                    if Estado == -1:
-                        print("Conectado")
-                        Estado = 0
+                                if not data:
+                                    break
 
-                Cliente.close()
+                                Sedex = json.loads(data.decode())
+                                self.ir_value = Sedex['IR1']
+                                self.ir2_value = Sedex['IR2']
+
+                                #Verifica_Cor(Sedex['CR3_0'],Sedex['CR3_1'],Sedex['CR3_2'])
             except Exception as e:
                 print(e)
                 time.sleep(0.5)
         
-
 Comm = Communication()
 Comm.daemon = True
 Comm.start()

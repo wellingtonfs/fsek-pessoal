@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 from ev3dev.ev3 import *
 from threading import *
-import time, socket, json
+import time, socket, json, math
 
 class Communication(Thread):
     def __init__(self):
@@ -36,6 +36,27 @@ class Communication(Thread):
 Comm = Communication()
 Comm.daemon = True
 Comm.start()
+
+def Angulo_Reta(pontos):
+    metade = int(len(pontos) / 2)
+    media = [0, 0]
+    for i in range(0, metade):
+        media[0] += pontos[i]
+        media[1] += 1
+
+    ponto1 = int(media[0] / media[1])
+
+    media = [0, 0]
+    for i in range(metade, len(pontos)):
+        media[0] += pontos[i]
+        media[1] += 1
+
+    ponto2 = int(media[0] / media[1])
+
+    m = (ponto2 - ponto1) / (2)
+    angulo = math.atan(m)
+    print((angulo*57.2958))
+    time.sleep(10)
 
 while True:
     pass
