@@ -6,8 +6,13 @@ import time, socket
 import math
 import colorsys
 
-cor3 = ColorSensor('in1')
-cor3.mode = 'RGB-RAW'
+m1 = LargeMotor('outD') #Esquerdo
+m2 = LargeMotor('outC') #Direito
+
+Sensor_Cor = [ColorSensor('in1'), ColorSensor('in2')] #1 = Esquerdo, 2 = Direito
+
+Sensor_Cor[0].mode = 'COL-COLOR'
+Sensor_Cor[1].mode = 'COL-COLOR'
 
 def convertHSV(r, g, b):
     h, s, v = colorsys.rgb_to_hsv(r, g, b)
@@ -17,8 +22,8 @@ def convertRGB(h, s, v):
     r, g, b = colorsys.hsv_to_rgb(h, s, v)
     return (r, g, b)
 
-def Verifica_Cor():
-    (x, y, z) = cor3.value(0), cor3.value(1), cor3.value(2)
+def Verifica_Cor(x,y,z):
+    #(x, y, z) = cor3.value(0), cor3.value(1), cor3.value(2)
     x = x/1023
     y = y/1023
     z = z/1023
@@ -37,12 +42,12 @@ def Verifica_Cor():
     color_name = ""
 
     colors = {
-        "black": "#000000",
-        "red": "#FF0000",
-        "yellow": "#FFFF00",
-        "green": "#00FF00",
-        "blue": "#0000FF",
-        "white": "#FFFFFF"
+        "1": "#000000", #Black
+        "5": "#FF0000", #Red
+        "4": "#FFFF00", #Yellow
+        "3": "#00FF00", #Green
+        "2": "#0000FF", #Blue
+        "6": "#FFFFFF" #White
     }
 
     def rgbFromStr(s):
@@ -60,8 +65,26 @@ def Verifica_Cor():
                 mincolorname = d  
         return mincolorname    
 
-    color = findNearestColorName((r, g, b), colors)
-    print(color, " - ", r, g, b)
+    return findNearestColorName((r, g, b), colors)
+
+while (Sensor_Cor[0].value() != 5 and Sensor_Cor[1].value() != 5):
+    m1.run_forever(speed_sp=180)
+    m2.run_forever(speed_sp=180)
+    print(Sensor_Cor[0].value())
     
-    
-    
+m1.stop(stop_action="brake")
+m2.stop(stop_action="brake")
+time.sleep(1.5)
+m1.run_to_rel_pos(position_sp=360,speed_sp=180,stop_action="brake")
+m2.run_to_rel_pos(position_sp=360,speed_sp=180,stop_action="brake")
+time.sleep(1.5)
+Sensor_Cor[0].mode = 'RGB-RAW'
+Sensor_Cor[1].mode = 'RGB-RAW'
+
+color = Verifica_Cor(Sensor_Cor[0].value(0), Sensor_Cor[0].value(1), Sensor_Cor[0].value(2))
+print(color)
+Sensor_Cor[0].mode = 'COL-COLOR'
+Sensor_Cor[1].mode = 'COL-COLOR'
+time.sleep(0.8)
+
+
