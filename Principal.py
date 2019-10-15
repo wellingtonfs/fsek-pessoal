@@ -171,29 +171,20 @@ def Emergencia(graus):
     m1.run_forever(speed_sp=300)
     m2.run_forever(speed_sp=300)
 
-def gyro():
-    while True:
-        baseAngle = gy.value()
-        print("Inicio loop")
-        print("Angulo Base: ", baseAngle)
+def gyro(an):
+    baseAngle = gy.value()
 
-        mdiff.turn_left(SpeedRPM(40), 90)
+    mdiff.turn_left(SpeedRPM(40), an)
+    time.sleep(0.5)
 
-        time.sleep(0.5)
+    angle = abs(gy.value() - baseAngle)
+    diffAng = angle - an
 
-        angle = abs(gy.value() - baseAngle)
-        diffAng = angle - 90
-
-        print("Angulo Calculado: ", angle)
-        print("Diferenca: ", diffAng)
-
-        if(diffAng < 0):
-            mdiff.turn_left(SpeedRPM(40), abs(diffAng))
-        else:
-            mdiff.turn_right(SpeedRPM(40), abs(diffAng))
-
-
-        time.sleep(2)
+    if(diffAng < 0):
+        mdiff.turn_left(SpeedRPM(40), abs(diffAng))
+    else:
+        mdiff.turn_right(SpeedRPM(40), abs(diffAng))
+    time.sleep(2)
 
 def blakeLine(): #Walk the black line to learning colors.
     global Estado, Cor_Anterior
@@ -262,13 +253,11 @@ def Mov_Garra_Sensor(Sentido, Pos): #0 = descer; 1 = subir;
     if Sentido: 
         if (ir.value() < 400):
             while (ir.value() < 100):
-                print (ir.value())
                 m3.run_to_rel_pos(position_sp=(-1)*Pos,speed_sp=150,stop_action="brake")
                 m4.run_to_rel_pos(position_sp=Pos,speed_sp=150,stop_action="brake")
                 time.sleep(0.5)
     else: 
         while (ir.value() > 45):
-                print (ir.value())
                 m3.run_to_rel_pos(position_sp=Pos,speed_sp=150,stop_action="brake")
                 m4.run_to_rel_pos(position_sp=(-1)*Pos,speed_sp=150,stop_action="brake")
                 time.sleep(0.5)
