@@ -563,7 +563,7 @@ def alinhar(c): #Essa função alinha o lego a uma cor especifica c.
 
     m1.run_forever(speed_sp=250)
     m2.run_forever(speed_sp=250)
-    time.sleep(0.5)
+    time.sleep(1)
     m1.stop(stop_action="brake")
     m2.stop(stop_action="brake")
     return 0
