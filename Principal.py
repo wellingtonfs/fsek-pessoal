@@ -2,33 +2,43 @@
 #coding: utf-8
 from ev3dev.ev3 import *
 from threading import *
+
+from ev3dev2.motor import OUTPUT_C, OUTPUT_D, MoveDifferential, SpeedRPM
+from ev3dev2.wheel import EV3EducationSetTire
+from ev3dev2.sensor import INPUT_1
+from ev3dev2.sensor.lego import GyroSensor
+
 import time, socket
 import math, json
 import colorsys
 
 #------VARIÁVEIS DO PROGRAMA
 
+mdiff = MoveDifferential(OUTPUT_D, OUTPUT_C, EV3EducationSetTire, 105)
+gy = GyroSensor(INPUT_1)
+gy.mode = 'GYRO-ANG'
+
 #Sensores
 m1 = LargeMotor('outD') #Esquerdo
 m2 = LargeMotor('outC') #Direito
-m3 = MediumMotor('outB') #Motor mais alto
-m4 = MediumMotor('outA') #Motor mais baixo
+#m3 = MediumMotor('outB') #Motor mais alto
+#m4 = MediumMotor('outA') #Motor mais baixo
 
-Sensor_Cor = [ColorSensor('in1'), ColorSensor('in2')] #1 = Esquerdo, 2 = Direito
+#Sensor_Cor = [ColorSensor('in1'), ColorSensor('in2')] #1 = Esquerdo, 2 = Direito
 '''
 cor = ColorSensor('in1') #2
 cor2 = ColorSensor('in2') #4
 '''
-us = UltrasonicSensor('in3')
+#us = UltrasonicSensor('in3')
 #us2 = UltrasonicSensor('in4')
 
-Sensor_Cor[0].mode = 'COL-COLOR'
-Sensor_Cor[1].mode = 'COL-COLOR'
+#Sensor_Cor[0].mode = 'COL-COLOR'
+#Sensor_Cor[1].mode = 'COL-COLOR'
 us.mode = 'US-DIST-CM'
 #us2.mode = 'US-DIST-CM'
 
 
-ir = InfraredSensor('in4') #Era no 3
+#ir = InfraredSensor('in4') #Era no 3
 #ir2 = InfraredSensor('in1')
 
 '''
