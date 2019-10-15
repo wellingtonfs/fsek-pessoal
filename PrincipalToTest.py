@@ -15,45 +15,25 @@ import colorsys
 #------VARIÁVEIS DO PROGRAMA
 
 mdiff = MoveDifferential(OUTPUT_D, OUTPUT_C, EV3EducationSetTire, 105)
-gy = GyroSensor(INPUT_1)
-gy.mode = 'GYRO-ANG'
-
-#Sensores
+#Motores
 m1 = LargeMotor('outD') #Esquerdo
 m2 = LargeMotor('outC') #Direito
-#m3 = MediumMotor('outB') #Motor mais alto
-#m4 = MediumMotor('outA') #Motor mais baixo
+m3 = MediumMotor('outB') #Motor mais alto
+m4 = MediumMotor('outA') #Motor mais baixo
 
-#Sensor_Cor = [ColorSensor('in1'), ColorSensor('in2')] #1 = Esquerdo, 2 = Direito
-'''
-cor = ColorSensor('in1') #2
-cor2 = ColorSensor('in2') #4
-'''
-#us = UltrasonicSensor('in3')
-#us2 = UltrasonicSensor('in4')
+#Sensores
 
-#Sensor_Cor[0].mode = 'COL-COLOR'
-#Sensor_Cor[1].mode = 'COL-COLOR'
-#us.mode = 'US-DIST-CM'
-#us2.mode = 'US-DIST-CM'
+Sensor_Cor = [ColorSensor('in1'), ColorSensor('in2')] #1 = Esquerdo, 2 = Direito
+Sensor_Cor[0].mode = 'COL-COLOR'
+Sensor_Cor[1].mode = 'COL-COLOR'
 
+Sensor_Ultrassonico = [UltrassonicSensor('in3'), UltrassonicSensor('in4')] #1 = Esquerdo, 2 = Direito
+Sensor_Ultrassonico[0].mode = 'US-DIST-CM'
+Sensor_Ultrassonico[1].mode = 'US-DIST-CM'
 
-#ir = InfraredSensor('in4') #Era no 3
-#ir2 = InfraredSensor('in1')
-
-'''
-ir.mode = 'IR-PROX'
-ir2.mode = 'IR-PROX'
-'''
-
-#Variaveis de uso geral
-Estado = 96 #0 = inicio, 1 = ...
-Pos_Cores = [[0,10],[0,15],[0,20]] #(x = 10), (y = 15), (z = 20) 
+#Variaveis globais
+Estado = -1 #0 = inicio, 1 = ...
 Cor_Anterior = 0
-Tempo_Cor = 0
-dif_temp = 0
-
-#------FIM DAS VARIÁVEIS
 
 def convertHSV(r, g, b):
     h, s, v = colorsys.rgb_to_hsv(r, g, b)
@@ -78,9 +58,6 @@ def Verifica_Cor(x,y,z):
     r = r * 255
     g = g * 255
     b = b * 255
-    
-    #Codigo Lucas
-    color_name = ""
 
     colors = {
         "1": "#000000", #Black
@@ -112,6 +89,7 @@ class Communication(Thread):
     def __init__(self):
         self.ir_value = 0
         self.ir2_value = 0
+        self.gy_value = 0
         Thread.__init__(self)
 
     def run(self):
@@ -134,6 +112,7 @@ class Communication(Thread):
                                 Sedex = json.loads(data.decode())
                                 self.ir_value = Sedex['IR1']
                                 self.ir2_value = Sedex['IR2']
+                                self.gy_value = Sedex['GY']
 
             except Exception as e:
                 print(e)
@@ -145,22 +124,6 @@ Comm.start()
 
 #------Inicio Funções:
 
-def giraRobo(graus, tempo = 2): #90 > 0: direita else: esquerda
-    razaoRobo = 5.25 / 3.0
-
-    m1.stop(stop_action="brake")
-    m2.stop(stop_action="brake")
-    time.sleep(0.3)
-
-    if graus > 0:
-        m1.run_to_rel_pos(position_sp=(razaoRobo*graus),speed_sp=280,stop_action="brake")
-        m2.run_to_rel_pos(position_sp=-(razaoRobo*graus),speed_sp=280,stop_action="brake")
-    else:
-        m1.run_to_rel_pos(position_sp=-(razaoRobo*(graus*-1)),speed_sp=280,stop_action="brake")
-        m2.run_to_rel_pos(position_sp=(razaoRobo*(graus*-1)),speed_sp=280,stop_action="brake")
-    if tempo != 0:
-        time.sleep(tempo)
-
 def Emergencia(graus):
     m1.stop(stop_action="brake")
     m2.stop(stop_action="brake")
@@ -171,20 +134,24 @@ def Emergencia(graus):
     m1.run_forever(speed_sp=300)
     m2.run_forever(speed_sp=300)
 
-def gyro(an):
-    baseAngle = gy.value()
+def giraRobo(graus, speed = 130):
+    angleBase = Comm.gy_value
+    if graus > 0:
+        left_speed = speed
+        right_speed = -speed
+    else: 
+        left_speed = speed
+        right_speed = -speed
 
-    mdiff.turn_left(SpeedRPM(40), an)
-    time.sleep(0.5)
+    graus = abs(graus)
 
-    angle = abs(gy.value() - baseAngle)
-    diffAng = angle - an
-
-    if(diffAng < 0):
-        mdiff.turn_left(SpeedRPM(40), abs(diffAng))
-    else:
-        mdiff.turn_right(SpeedRPM(40), abs(diffAng))
-    time.sleep(2)
+    m1.run_forever(left_speed)
+    m2.run_forever(right_speed)
+    while abs(angleBase - Comm.gy_value) < graus:
+        pass
+    m1.stop(stop_action="brake")
+    m2.stop(stop_action="brake")
+    
 
 def blakeLine(): #Walk the black line to learning colors.
     global Estado, Cor_Anterior
@@ -458,7 +425,7 @@ while True:
         Encontrar_Pos()
         Estado = 1
         pass
-    elif Estado == 1: #Achar cor tudo pequeno
+    elif Estado == 1: #Achar cor tubo pequeno
         blakeLine()
         Estado = 2
         pass

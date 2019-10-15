@@ -11,6 +11,9 @@ ir.mode = 'IR-PROX'
 ir2 = InfraredSensor('in2')
 ir2.mode = 'IR-PROX'
 
+gy = GyroSensor('in3')
+gy.mode = 'GYRO-ANG'
+
 class Communication(Thread):
     def __init__(self):
         Thread.__init__(self)
@@ -26,11 +29,12 @@ class Communication(Thread):
                         Sedex = {
                             "IR1" : ir.value(),
                             "IR2" : ir2.value(),
+                            "GY" : gy.value()
                         }
 
                         s.send(json.dumps(Sedex).encode())
-                        time.sleep(0.5)
-            except:
+                        time.sleep(0.3)
+            except Exception as e:
                 print(e)
                 s.close()
                 time.sleep(0.5)
