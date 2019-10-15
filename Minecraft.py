@@ -162,30 +162,28 @@ def alinhar(c): #Essa função alinha o lego a uma cor especifica c.
     return 0
 
 def scan_gasoduto():
-    tempo_inicio, tempos_pista, anterior_leitura = -1, [], -1
-    tempo_dez, tempo_quinze, tempo_vinte = 0,0,0
+    tempo_inicio, tempos_pista, anterior_leitura, tempo_final = -1, [], -1, -1
+    #tempo_dez, tempo_quinze, tempo_vinte = 0,0,0
     m1.run_forever(speed_sp=150)
     m2.run_forever(speed_sp=150)
-    while (ir_value() > 30):
-        m1.run_forever(speed_sp="180")
-        m2.run_forever(speed_sp="180")
+    while (ir.value() > 30):
+        m1.run_forever(speed_sp=180)
+        m2.run_forever(speed_sp=180)
     giraRobo(-90)
     time.sleep(.8)
     if (Sensor_Ultrassonico[0].value() > 36 or Sensor_Ultrassonico[1].value() > 36):
-            m1.stop_action("brake")
-            m2.stop_action("brake")
-            
-            m1.run_timed(time_sp=70, speed_sp=-180, stop_action="brake")
-            m2.run_timed(time_sp=70, speed_sp=-180, stop_action="brake")
-            
-            m1.stop_action("brake")
-            m2.stop_action("brake")
+        m1.stop_action("brake")
+        m2.stop_action("brake")
+        
+        m1.run_timed(time_sp=70, speed_sp=-180, stop_action="brake")
+        m2.run_timed(time_sp=70, speed_sp=-180, stop_action="brake")
+        
+        m1.stop_action("brake")
+        m2.stop_action("brake")
 
-            giraRobo(180)
-            break
+        giraRobo(180)
         if len(tempos_pista) > 1:
             tempos_pista.append(time.time())
-        break
     elif anterior_leitura == -1:
         tempos_pista.append(time.time()) 
         anterior_leitura = ir.value()
