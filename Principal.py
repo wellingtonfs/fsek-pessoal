@@ -251,13 +251,13 @@ def Verificar_Ruido(Sensor): #fazer a função de ruido dos sensores de cor
 
 def Mov_Garra_Sensor(Sentido, Pos): #0 = descer; 1 = subir;
     if Sentido: 
-        if (ir.value() < 400):
-            while (ir.value() < 100):
+        if (us.value() < 400):
+            while (us.value() < 100):
                 m3.run_to_rel_pos(position_sp=(-1)*Pos,speed_sp=150,stop_action="brake")
                 m4.run_to_rel_pos(position_sp=Pos,speed_sp=150,stop_action="brake")
                 time.sleep(0.5)
     else: 
-        while (ir.value() > 45):
+        while (us.value() > 45):
                 m3.run_to_rel_pos(position_sp=Pos,speed_sp=150,stop_action="brake")
                 m4.run_to_rel_pos(position_sp=(-1)*Pos,speed_sp=150,stop_action="brake")
                 time.sleep(0.5)
