@@ -34,7 +34,7 @@ cor2 = ColorSensor('in2') #4
 
 #Sensor_Cor[0].mode = 'COL-COLOR'
 #Sensor_Cor[1].mode = 'COL-COLOR'
-us.mode = 'US-DIST-CM'
+#us.mode = 'US-DIST-CM'
 #us2.mode = 'US-DIST-CM'
 
 
@@ -424,8 +424,8 @@ def AchouCano():
             m2.stop(stop_action="brake")
             print(str(tempo_g[0]))
             time.sleep(10)
-
-def scan_sup():
+'''
+def scan_sup(): #Para entradas do gasoduto
     ti, tf = -1, -1
     m1.run_forever(speed_sp=150)
     m2.run_forever(speed_sp=150)
@@ -472,7 +472,7 @@ def scan_sup():
 
         m1.stop(stop_action="brake")
         m2.stop(stop_action="brake")
-        time.sleep(30)
+        time.sleep(30)'''
 
 def scan_gasoduto():
     tempo_inicio, tempos_pista, anterior_leitura = -1, [], 0
