@@ -54,7 +54,7 @@ Tempo_Cor = 0
 dif_temp = 0
 
 #------FIM DAS VARIÁVEIS
-'''
+
 def convertHSV(r, g, b):
     h, s, v = colorsys.rgb_to_hsv(r, g, b)
     return (h, s, v)
@@ -83,12 +83,12 @@ def Verifica_Cor(x,y,z):
     color_name = ""
 
     colors = {
-        "Black": "#000000" #Black,
-        "Red": "#FF0000" #Red,
-        "Yellow": "#FFFF00" #Yellow,
-        "Green": "#00FF00" #Green,
-        "Blue": "#0000FF" #Blue,
-        "White": "#FFFFFF" #White
+        "1": "#000000", #Black
+        "5": "#FF0000", #Red
+        "4": "#FFFF00", #Yellow
+        "3": "#00FF00", #Green
+        "2": "#0000FF", #Blue
+        "6": "#FFFFFF" #White
     }
 
     def rgbFromStr(s):
@@ -106,8 +106,7 @@ def Verifica_Cor(x,y,z):
                 mincolorname = d  
         return mincolorname    
 
-    color = findNearestColorName((r, g, b), colors)
-    print(color, " - ", r, g, b)'''
+    return findNearestColorName((r, g, b), colors)
     
 class Communication(Thread):
     def __init__(self):
@@ -136,7 +135,6 @@ class Communication(Thread):
                                 self.ir_value = Sedex['IR1']
                                 self.ir2_value = Sedex['IR2']
 
-                                #Verifica_Cor(Sedex['CR3_0'],Sedex['CR3_1'],Sedex['CR3_2'])
             except Exception as e:
                 print(e)
                 time.sleep(0.5)
