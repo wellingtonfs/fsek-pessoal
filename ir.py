@@ -5,9 +5,8 @@ from threading import *
 import socket, time
 import math
 
-ir = InfraredSensor('in2')
-ir.mode = 'IR-PROX'
+m1 = LargeMotor('outD') #Esquerdo
+m2 = LargeMotor('outC') #Direito
 
-while True: 
-    print(ir.value())
-    time.sleep(.2)
+m1.run_forever(speed_sp=300)
+m2.run_forever(speed_sp=300)

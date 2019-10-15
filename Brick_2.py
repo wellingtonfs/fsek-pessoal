@@ -2,7 +2,7 @@
 #coding: utf-8
 from ev3dev.ev3 import *
 from threading import *
-import socket, time
+import socket, time, json
 import math
 
 ir = InfraredSensor('in1')
@@ -19,42 +19,31 @@ class Communication(Thread):
         Thread.__init__(self)
 
     def run(self):
-        Verificar_Conexao = True
-        tt = 0
-        cont = 0
         while True:
             try:
-                while True:
-                    Servidor = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                    Servidor.connect(('169.255.168.153', 3563))
-                    if Verificar_Conexao:
-                        cont += 1
-                        print("Conectado" + str(cont))
-                        Verificar_Conexao = False
+                with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                    s.connect(('169.255.168.150', 3563))
+                
+                    while True:
 
-                    #print("%d --- %d" %(ir.value() %ir2.value()))
+                        Sedex = {
+                            "IR1" : ir.value(),
+                            "IR2" : ir2.value(),
+                            "CR3_0" : cor3.value(0),
+                            "CR3_1" : cor3.value(1),
+                            "CR3_2" : cor3.value(2)
+                        }
 
-                    Str_Env = "%d,%d,%d,%d,%d" %(ir.value(), ir2.value(), cor3.value(0), cor3.value(1), cor3.value(2))
-
-                    if (time.time() - tt) > 0.5:
-                        print("%d  -  %d" %(ir2.value(), cor.value()))
-                        tt = time.time()
-
-                    St = Str_Env.encode('utf-8')
-
-                    Servidor.send(St)
-                    Servidor.close()
-                    time.sleep(1)
-
-                Servidor.close()
-                    
-            except Exception as e:
+                        s.send(json.dumps(Sedex).encode())
+                        time.sleep(0.5)
+            except:
                 print(e)
-                Verificar_Conexao = True
+                s.close()
+                time.sleep(0.5)
 
-Comm = Communication()
-Comm.daemon = True
-Comm.start()
+comm = Communication()
+comm.daemon = True
+comm.start()
 
 while True:
     pass
