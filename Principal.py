@@ -273,8 +273,8 @@ def Mov_Garra_Analog(Sentido, Pos):
 
 '''
 def Mov_Garra_Gasoduto():
-    if (ir.value() < 120):
-        while (ir.value() < 90):
+    if (us.value() < 120):
+        while (us.value() < 90):
             print (ir.value())
             m3.run_to_rel_pos(position_sp=-50,speed_sp=150,stop_action="brake")
             m4.run_to_rel_pos(position_sp=50,speed_sp=150,stop_action="brake")
@@ -325,7 +325,6 @@ def Mov_Garra_Gasoduto():
     #Desce a garra
     m3.run_to_rel_pos(position_sp=-120,speed_sp=150,stop_action="brake")
     m4.run_to_rel_pos(position_sp=120,speed_sp=150,stop_action="brake")
-
 
 def Intervalos(Intervalo): #Saber se o intervalo ta crescendo, decrescendo ou os dois
     c, d = 0, 0 #crescer / decrescer
