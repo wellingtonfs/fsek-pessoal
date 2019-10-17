@@ -16,57 +16,69 @@ m2 = LargeMotor('outC')
 m3 = MediumMotor('outB')
 m4 = MediumMotor('outA')
 
-#Sensor_Cor = [ColorSensor('in1'), ColorSensor('in2')]
-#Sensor_Cor[0] = ColorSensor('in1') #2
-#Sensor_Cor[1] = ColorSensor('in2') #4
-us = UltrasonicSensor('in3')
-#us2 = UltrasonicSensor('in4')
-#ir = InfraredSensor('in4')
-#ir = UltrasonicSensor('in4')
-# ir2 = InfraredSensor('in1')
-# tou = TouchSensor('in4')
+speed = 600
+alo = 600
 
-#Sensor_Cor[0].mode = 'COL-COLOR'
-#Sensor_Cor[1].mode = 'COL-COLOR'
-us.mode = 'US-DIST-CM'
-#us2.mode = 'US-DIST-CM'
-#ir.mode = 'US-DIST-CM'
-#ir.mode = 'IR-PROX'
-# ir2.mode = 'IR-PROX'
-
-#mdiff = MoveDifferential(OUTPUT_D, OUTPUT_C, EV3EducationSetTire, 105)
-#gy = GyroSensor(INPUT_1)
-#gy.mode = 'GYRO-ANG'
-
-def Mov_Garra_Sensor(Sentido, Pos): #0 = descer; 1 = subir;
-    if Sentido: 
-        if (us.value() < 400):
-            while (us.value() < 100):
-                m3.run_to_rel_pos(position_sp=(-1)*Pos,speed_sp=150,stop_action="brake")
-                m4.run_to_rel_pos(position_sp=Pos,speed_sp=150,stop_action="brake")
-                time.sleep(0.5)
-    else: 
-        while (us.value() > 100):
-                m3.run_to_rel_pos(position_sp=Pos,speed_sp=150,stop_action="brake")
-                m4.run_to_rel_pos(position_sp=(-1)*Pos,speed_sp=150,stop_action="brake")
-                time.sleep(0.5)
-    time.sleep(2)
-
-def Mov_Garra_Analog(Sentido, Pos):
-    if Sentido:
-        m3.run_to_rel_pos(position_sp=(-1)*Pos,speed_sp=150,stop_action="brake")
-        m4.run_to_rel_pos(position_sp=Pos,speed_sp=150,stop_action="brake")
-    else:
-        m3.run_to_rel_pos(position_sp=Pos,speed_sp=150,stop_action="brake")
-        m4.run_to_rel_pos(position_sp=(-1)*Pos,speed_sp=150,stop_action="brake")
-
-Mov_Garra_Sensor(1, 100)
-time.sleep(5)
-Mov_Garra_Analog(0, 200)
-
-
+while True:
+    m3.run_forever(speed_sp=150)
+    m4.run_forever(speed_sp=-150)
+    print(m3.speed, " - ", m4.speed)
 
 '''
-while True:
-    print ("%d" %us.value())
+def Para_Motor_Large(speed):
+    speed = speed
+    alo = speed
+
+    while True:
+        speed = alo
+
+        m1.run_forever(speed_sp=speed)
+        m2.run_forever(speed_sp=speed)
+
+        print(m1.speed, " - ", m2.speed)
+        time.sleep(0.5)
+
+        speed = speed * 0.95
+
+        if (m1.speed < speed) or (m2.speed < speed):
+            m1.stop(stop_action="brake")
+            m2.stop(stop_action="brake")
+        break
+
+def Para_Motor_Medium(Sentido, speed):
+    speed = speed
+    alo = speed
+
+    while True:
+        speed = alo
+
+        if Sentido:
+            m3.run_forever(speed_sp=(-1)*speed)
+            m4.run_forever(speed_sp=speed)
+
+            print(m1.speed, " - ", m2.speed)
+            time.sleep(0.5)
+
+            speed = speed * 0.95
+
+            if (m1.speed < speed) or (m2.speed < speed):
+                m3.stop(stop_action="brake")
+                m4.stop(stop_action="brake")
+        else:
+            m3.run_forever(speed_sp=speed)
+            m4.run_forever(speed_sp=(-1)*speed)
+
+            print(m1.speed, " - ", m2.speed)
+            time.sleep(0.5)
+
+            speed = speed * 0.95
+
+            if (m1.speed < speed) or (m2.speed < speed):
+                m3.stop(stop_action="brake")
+                m4.stop(stop_action="brake")
+        break
+
+#Para_Motor_Large(600)
+Para_Motor_Medium(0, 150)
+
 '''

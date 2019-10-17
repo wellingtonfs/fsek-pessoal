@@ -271,6 +271,25 @@ def Mov_Garra_Analog(Sentido, Pos):
         m3.run_to_rel_pos(position_sp=Pos,speed_sp=150,stop_action="brake")
         m4.run_to_rel_pos(position_sp=(-1)*Pos,speed_sp=150,stop_action="brake")
 
+def Para_Motor_Large(speed):
+    speed = speed
+    alo = speed
+
+    while True:
+        speed = alo
+
+        m1.run_forever(speed_sp=speed)
+        m2.run_forever(speed_sp=speed)
+
+        print(m1.speed, " - ", m2.speed)
+        time.sleep(0.5)
+
+        speed = speed * 0.95
+
+        if (m1.speed < speed) or (m2.speed < speed):
+            m1.stop(stop_action="brake")
+            m2.stop(stop_action="brake")
+
 '''
 def Mov_Garra_Gasoduto():
     if (us.value() < 120):
