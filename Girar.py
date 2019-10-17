@@ -14,7 +14,7 @@ def Modulo(x):
         return x * -1
     return x 
 
-def Girar(ang):
+def Girar(ang):#errado
     atual = gy.value()
     while Modulo((gy.value() - atual)) < ang:
         m1.run_forever(speed_sp=100)
