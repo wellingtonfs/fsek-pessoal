@@ -8,8 +8,8 @@ import math
 m1 = LargeMotor('outA')
 m2 = LargeMotor('outD')
 
-ir = InfraredSensor('in4')
-ir.mode = 'IR-PROX'
+ir = UltrasonicSensor('in4')
+ir.mode = 'US-DIST-CM'
 
 tc = TouchSensor('in3')
 
@@ -84,28 +84,59 @@ def ondeTo(andeiLinha,andeiColuna, linha_inicio, coluna_inicio):
     coluna_inicio = coluna_inicio +andeiColuna
     return linha_inicio,coluna_inicio
 
+def Entregar_Tubo(v = False):
+    m1.stop(stop_action="brake")
+    m2.stop(stop_action="brake")
+    tempo_t, medio_t = 0, 0
+    if not v:
+        while True:
+            if ir.value() < 150:
+                if tempo_t == 0:
+                    m1.run_forever(speed_sp = -100)
+                    m2.run_forever(speed_sp = -100)
+                else:
+                    m1.stop(stop_action="brake")
+                    m2.stop(stop_action="brake")
+                    medio_t = (time.time() - tempo_t)/2
+                    break
+            else:
+                if tempo_t == 0:
+                    tempo_t = time.time()
+        
+        m1.run_timed(time_sp = 1000*medio_t, speed_sp = 100)
+        m2.run_timed(time_sp = 1000*medio_t, speed_sp = 100)
+        time.sleep(medio_t+1)
+        giraRobo(-90)
+        print("Colocando tubo....")
+        time.sleep(3)
+        giraRobo(90)
+        while ir.value() > 150:
+            m1.run_forever(speed_sp = 100)
+            m2.run_forever(speed_sp = 100)
+        m1.stop(stop_action="brake")
+        m2.stop(stop_action="brake")
+
 def scan_gasoduto():
-    primeiro, segundo = True, True
-    anterior_leitura, anterior_leitura2 = 0, 0
-    passos, passos_ant, passos_ant2 = -1, 0, 0
+    primeiro = True
+    com_tubo = True
+    anterior_leitura = 0
+    passos, passos_ant = -1, 0
     speed1, speed2 = 200, 216
     tempinho, tempo_andar = time.time(), 0
     vao, vao_tubo = False, False
     while True:
-        if (time.time() - tempinho) > 0.2:
+        if (time.time() - tempinho) > 0.5:
             if primeiro:
                 anterior_leitura = us.value()
                 primeiro = False
             elif abs(us.value() - anterior_leitura) > 100 and vao == False: #Descobre um vao
                 print("Inicio vao")
-                #speed1, speed2 = 200, 210
                 if (us.value() - anterior_leitura) > 0: #entrou no vao
                     matriz_gasoduto[1][passos] = 1
                     matriz_gasoduto[0][passos] = 0
                     passos_ant = passos
                 anterior_leitura = us.value()
-                vao, vao_tubo = True, False
-                segundo = True
+                vao = True
             elif vao and (anterior_leitura - us.value()) > 100: #Vao fechou
                 print("final vao")      
                 print("%d - %d" %(passos_ant, passos+1))
@@ -114,46 +145,30 @@ def scan_gasoduto():
                     matriz_gasoduto[0][i] = 0
                 anterior_leitura = us.value()
                 vao = False
-            else:
-                pass
-                '''if not vao:
-                    if (anterior_leitura - us.value()) > 2:
-                        speed2 += 10
-                    elif (anterior_leitura - us.value()) < 2:
-                        speed1 += 10
-                    anterior_leitura = us.value()
-                '''
-
-            print(ir.value())
-            if vao == False:
-                print(ir.value())
-                if us.value() < 120 or True:
-                    if segundo:
-                        anterior_leitura2 = ir.value()
-                        segundo = False
-                    elif abs(ir.value() - anterior_leitura2) > 10 and vao_tubo == False: #Descobre um vao de tubo
-                        print("Inicio tubo")
-                        if (ir.value() - anterior_leitura2) > 0: #entrou no vao de tubo
-                            matriz_gasoduto[0][passos] = 2
-                            passos_ant2 = passos
-                        anterior_leitura2 = ir.value()
-                        vao_tubo = True
-                    elif vao_tubo and (anterior_leitura2 - ir.value()) > 10: #Vao de tubo fechou
-                        print("final tubo")      
-                        for i in range(passos_ant2, passos + 1, 1):
-                            matriz_gasoduto[0][i] = 2
-                        anterior_leitura2 = ir.value()
-                        vao_tubo = False
                 
             tempinho = time.time()
 
-            #print(us.value())
-
-        if tc.value():
-            print(matriz_gasoduto[0])
-            print(matriz_gasoduto[1])
-            return 0
-
+        if ir.value() > 150 and vao_tubo == False: #Descobre um vao de tubo
+            if vao:
+                if ir.value() > 410:
+                    print("Inicio tubo 2")
+                    vao_tubo = True
+            else:
+                print("Inicio tubo")
+                vao_tubo = True
+        elif vao_tubo: #Vao de tubo fechou
+            if vao:
+                if ir.value() < 410:
+                    print("Fim tubo 2")
+                    vao_tubo = False
+            else:
+                if ir.value() < 150:
+                    print("Fim tubo")
+                    vao_tubo = False
+                    if com_tubo:
+                        Entregar_Tubo()
+                        com_tubo = False
+        
         if passos < 31 and (time.time() - tempo_andar) > 1:
             m1.run_to_rel_pos(position_sp=160, speed_sp=speed1, stop_action="brake")
             m2.run_to_rel_pos(position_sp=160, speed_sp=speed2, stop_action="brake")
