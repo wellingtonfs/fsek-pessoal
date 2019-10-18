@@ -14,6 +14,9 @@ ir2.mode = 'IR-PROX'
 gy = GyroSensor('in3')
 gy.mode = 'GYRO-ANG'
 
+us = UltrassonicSensor('in4')
+us.mode = 'US-DIST-CM'
+
 class Communication(Thread):
     def __init__(self):
         Thread.__init__(self)
@@ -29,7 +32,8 @@ class Communication(Thread):
                         Sedex = {
                             "IR1" : ir.value(),
                             "IR2" : ir2.value(),
-                            "GY" : gy.value()
+                            "GY" : gy.value(),
+                            "US" : us.value()
                         }
 
                         s.send(json.dumps(Sedex).encode())

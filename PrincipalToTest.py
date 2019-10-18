@@ -97,6 +97,7 @@ class Communication(Thread):
         self.ir_value = 0
         self.ir2_value = 0
         self.gy_value = 0
+        self.us3_value = 0
         Thread.__init__(self)
 
     def run(self):
@@ -120,6 +121,7 @@ class Communication(Thread):
                                 self.ir_value = Sedex['IR1']
                                 self.ir2_value = Sedex['IR2']
                                 self.gy_value = Sedex['GY']
+                                self.us3_value = Sedex['US']
 
             except Exception as e:
                 print(e)
@@ -225,13 +227,13 @@ def Verificar_Ruido(Sensor): #fazer a função de ruido dos sensores de cor
 
 def Mov_Garra_Sensor(Sentido, Pos): #0 = descer; 1 = subir;
     if Sentido: 
-        if (ir.value() < 400):
-            while (ir.value() < 100):
+        if (Comm.us3_value < 400):
+            while (Comm.us3_value < 100):
                 m3.run_to_rel_pos(position_sp=(-1)*Pos,speed_sp=150,stop_action="brake")
                 m4.run_to_rel_pos(position_sp=Pos,speed_sp=150,stop_action="brake")
                 time.sleep(0.5)
     else: 
-        while (ir.value() > 45):
+        while (Comm.us3_value > 45):
                 m3.run_to_rel_pos(position_sp=Pos,speed_sp=150,stop_action="brake")
                 m4.run_to_rel_pos(position_sp=(-1)*Pos,speed_sp=150,stop_action="brake")
                 time.sleep(0.5)
@@ -244,11 +246,6 @@ def Mov_Garra_Analog(Sentido, Pos):
     else:
         m3.run_to_rel_pos(position_sp=Pos,speed_sp=150,stop_action="brake")
         m4.run_to_rel_pos(position_sp=(-1)*Pos,speed_sp=150,stop_action="brake")
-
-def Modulo(x):
-    if x < 0:
-        return x * -1
-    return x 
 
 def LeituraIR(QIr): #fazer ele "vibrar" para não ler sempre a mesma coisa
     global Comm
@@ -294,7 +291,7 @@ def AchouCano():
                 m1.run_forever(speed_sp=70)
                 m2.run_forever(speed_sp=-70)
                 leitura = LeituraIR(2)
-                if Modulo(leitura - leitura_anterior) >= variacao:
+                if abs(leitura - leitura_anterior) >= variacao:
                     if (leitura - leitura_anterior) < 0: #caso ele ache uma variação grande na medição, ele zera as variaveis
                         Medidas[0] = leitura
                         tempo_g[0] = time.time()
@@ -368,7 +365,7 @@ def alinhar(c): #Essa função alinha o lego a uma cor especifica c.
                 else:
                     m1.stop(stop_action="brake")
                     m2.run_forever(speed_sp=100)
-                if 40 < us2.value() < 400:
+                if 40 < Sensor_Ultrassonico[1].value() < 400:
                     return 2
             break
 
@@ -391,7 +388,7 @@ def alinhar(c): #Essa função alinha o lego a uma cor especifica c.
                 else:
                     m1.run_forever(speed_sp=100)
                     m2.stop(stop_action="brake")
-                if 40 < us.value() < 400:
+                if 40 < Sensor_Ultrassonico[0].value() < 400:
                     return 1
             break
 
@@ -416,9 +413,9 @@ def Encontrar_Pos():
                 return 0
         elif Sensor_Cor[0].value() == 3 or Sensor_Cor[1].value() == 3: #Se achar Verde
             Emergencia(180)
-        elif 40 < us.value() < 400:
+        elif 40 < Sensor_Ultrassonico[0].value() < 400:
             Emergencia(90)
-        elif 40 < us2.value() < 400:
+        elif 40 < Sensor_Ultrassonico[1].value() < 400:
             Emergencia(-90)
 
         m1.run_forever(speed_sp=300)
