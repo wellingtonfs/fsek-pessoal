@@ -62,6 +62,23 @@ pp = paralelo()
 pp.daemon = True
 pp.start()
 
+def andar(tempo_and):
+    t_i = time.time()
+    angulo_base = gy.value()
+    speed1, speed2 = 200, 200
+    while (time.time() - t_i) <= tempo_and:
+        g = gy.value()
+        if g < angulo_base:
+            speed1 = 180
+        elif g > angulo_base:
+            speed2 = 180
+        else:
+            speed1, speed2 = 200, 200
+        m1.run_forever(speed_sp=speed1)
+        m2.run_forever(speed_sp=speed2)
+    m1.stop(stop_action="brake")
+    m2.stop(stop_action="brake")
+
 def giraRobo(graus, tempo = 2): #90 > 0: direita else: esquerda
     razaoRobo = 5.5 / 3.0
     if graus > 0:
