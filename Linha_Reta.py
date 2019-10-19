@@ -4,7 +4,7 @@ from ev3dev.ev3 import *
 from threading import *
 import time
 
-m1 = LargeMotor('outA')
+m1 = LargeMotor('outC')
 m2 = LargeMotor('outD')
 
 gy = GyroSensor('in1')
@@ -28,9 +28,9 @@ class andar(Thread):
                 speed1, speed2 = self.vel, self.vel
                 while self.parando == False:
                     g = gy.value()
-                    if g < angulo_base:
+                    if g > angulo_base:
                         speed1 = self.vel - 20
-                    elif g > angulo_base:
+                    elif g < angulo_base:
                         speed2 = self.vel - 20
                     else:
                         speed1, speed2 = self.vel, self.vel
@@ -55,12 +55,16 @@ lego = andar()
 lego.daemon = True
 lego.start()
 
+lego = andar()
+lego.daemon = True
+lego.start()
+
 while True:
     a = eval(input("Digite um numero: "))
-    if a == 1:
-        lego.andar()
-    elif a > 1:
-        lego.andar(angulo = a)
-    else:
+    if a == -1:
+        lego.andar(speed=-200)
+    elif a == 1:
+        lego.andar(speed=200)
+    elif a == 0:
         lego.parar()
     

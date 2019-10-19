@@ -5,8 +5,8 @@ from ev3dev.ev3 import *
 from threading import *
 
 # attach large motors to ports B and C, medium motor to port A
-motor_left = LargeMotor('outD')
-motor_right = LargeMotor('outA')
+motor_left = LargeMotor('outC')
+motor_right = LargeMotor('outD')
 
 '''
 ir = InfraredSensor('in4')

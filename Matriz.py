@@ -3,16 +3,11 @@ import termios, tty, sys
 from ev3dev.ev3 import *
 from threading import *
 
-from ev3dev2.motor import OUTPUT_D, OUTPUT_A, MoveDifferential, SpeedRPM
-from ev3dev2.wheel import EV3EducationSetTire
-
 import time
 import math
 
-mdiff = MoveDifferential(OUTPUT_A, OUTPUT_D, EV3EducationSetTire, 105)
-
-m1 = LargeMotor('outA')
 m2 = LargeMotor('outD')
+m1 = LargeMotor('outC')
 
 ir = UltrasonicSensor('in4')
 ir.mode = 'US-DIST-CM'
@@ -36,13 +31,6 @@ for i in range(31):
     linha.append(0)
 matriz_gasoduto.append(linha)
 
-'''k = getch()
-    if k == 'p':
-        print(matriz_gasoduto[0])
-        print(matriz_gasoduto[1])
-    elif k == 'q':
-        break'''
-
 def getch():
     fd = sys.stdin.fileno()
     old_settings = termios.tcgetattr(fd)
@@ -51,12 +39,6 @@ def getch():
     termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
 
     return ch
-
-for i in range(2):
-    linha = []
-    for j in range(31):
-        linha.append(0)
-    matriz_cano.append(linha)
 
 class andar(Thread):
     def __init__(self):
@@ -76,10 +58,10 @@ class andar(Thread):
                 speed1, speed2 = self.vel, self.vel
                 while self.parando == False:
                     g = gy.value()
-                    if g < angulo_base:
-                        speed1 = self.vel - 0
-                    elif g > angulo_base:
-                        speed2 = self.vel - 0
+                    if g > angulo_base:
+                        speed1 = self.vel - 20
+                    elif g < angulo_base:
+                        speed2 = self.vel - 20
                     else:
                         speed1, speed2 = self.vel, self.vel
                     m1.run_forever(speed_sp=speed1)
@@ -103,23 +85,23 @@ lego = andar()
 lego.daemon = True
 lego.start()
 
-def gyro(graus, speed = 130):
-    angleBase = gy.value()
-    if graus > 0:
-        left_speed = speed
-        right_speed = -speed
-    else: 
-        left_speed = speed
-        right_speed = -speed
+'''
+class Communication(Thread):
+    def __init__(self):
+        Thread.__init__(self)
 
-    graus = abs(graus)
-
-    m1.run_forever(speed_sp=left_speed)
-    m2.run_forever(speed_sp=right_speed)
-    while abs(angleBase - gy.value()) < graus:
-        pass
-    m1.stop(stop_action="brake")
-    m2.stop(stop_action="brake")
+    def run(self):
+        while True:
+            k = getch()
+            if k == 'p':
+                lego.parar()
+                exit()
+                quit()
+            
+Comm = Communication()
+Comm.daemon = True
+Comm.start()
+'''
 
 #9 quadrados
 def anda(tamanho):
@@ -132,140 +114,177 @@ def ondeTo(andeiLinha,andeiColuna, linha_inicio, coluna_inicio):
     coluna_inicio = coluna_inicio +andeiColuna
     return linha_inicio,coluna_inicio
 
-def Entregar_Tubo(v = False):
+def Ir_Pos_Matriz(pIni, pFim, angulo):
+    tempo_andar = time.time()
+    print("entrou aq", pIni, pFim)
+    while True:
+        if pIni == pFim:
+            return 0
+        elif pIni < pFim:
+            if pIni < pFim and (time.time() - tempo_andar) > 0.85:
+                lego.andar(speed = 150, angulo = angulo)
+                pIni += 1
+                tempo_andar = time.time()
+            else:
+                if pIni == pFim:
+                    return 0
+        else:
+            if pIni > pFim and (time.time() - tempo_andar) > 0.85:
+                lego.andar(speed = -150, angulo = angulo)
+                pIni -= 1
+                tempo_andar = time.time()
+            else:
+                if pIni == pFim:
+                    return 0
+
+def Entregar_Tubo(p1 = -1, p2 = 0, angulo = 0):
     lego.parar()
     tempo_t, medio_t = 0, 0
-    if not v:
+    if p1 == -1:
         while True:
             if ir.value() < 150:
                 if tempo_t == 0:
-                    m1.run_forever(speed_sp = -100)
-                    m2.run_forever(speed_sp = -100)
+                    lego.andar(speed=-100, angulo=angulo)
                 else:
-                    m1.stop(stop_action="brake")
-                    m2.stop(stop_action="brake")
+                    lego.parar()
                     medio_t = (time.time() - tempo_t)/2
                     break
             else:
                 if tempo_t == 0:
                     tempo_t = time.time()
-        
-        m1.run_timed(time_sp = 1000*medio_t, speed_sp = 100)
-        m2.run_timed(time_sp = 1000*medio_t, speed_sp = 100)
-        time.sleep(medio_t+1)
-        #gyro(-90)
-        print("Colocando tubo....")
-        time.sleep(3)
-        #gyro(90)
-        while ir.value() > 150:
-            m1.run_forever(speed_sp = 100)
-            m2.run_forever(speed_sp = 100)
-        m1.stop(stop_action="brake")
-        m2.stop(stop_action="brake")
+                    lego.andar(speed=-100, angulo=angulo)
+    else:
+        print("entrega especial")
+        tempo_t = time.time()
+        Ir_Pos_Matriz(p1, p2, angulo)
+        medio_t = (time.time() - tempo_t) / 2
+
+    print(medio_t)
+    m1.run_timed(time_sp = 1000*medio_t, speed_sp = 100, stop_action="brake")
+    m2.run_timed(time_sp = 1000*medio_t, speed_sp = 100, stop_action="brake")
+    time.sleep(medio_t+1)
+    #gyro(-90)
+    print("Colocando tubo....")
+    time.sleep(3)
+    #gyro(90)
+    while ir.value() > 150:
+        m1.run_forever(speed_sp = 100)
+        m2.run_forever(speed_sp = 100)
+    m1.stop(stop_action="brake")
+    m2.stop(stop_action="brake")
 
 def tamanhoCano(tamanho):
-    print("tempo do tamanho")
-    print(tamanho)
+    print("tempo do tamanho: ", tamanho)
     if tamanho < 1.5 :
         return 10
     elif tamanho < 2.5:
         return 15
     return 20
 
-def scan_gasoduto():
-    primeiro = True
-    com_tubo = True
-    anterior_leitura = 0
-    passos, passos_ant = -1, 0
-    tempinho, tempo_andar = time.time(), 0
-    vao, vao_tubo = False, False
-    espaco = 0
+def scan_gasoduto(tam_tubo):
+    com_tubo, primeiro = tam_tubo, [False, 0]
+    passos, passos_ant, passos_ant2 = -1, 0, 0
+    tempinho, tempo_andar, espaco = 0, 0, 0
+    vao, vao_tubo = False, 0
     angulo_inicial = gy.value()
-    print("angulo inicial = %d" %angulo_inicial)
-    passos_ant2 = 0
-    while True:
-        if (time.time() - tempinho) > 0.5:
-            if primeiro:
-                anterior_leitura = us.value()
-                primeiro = False
-            elif abs(us.value() - anterior_leitura) > 100 and vao == False: #Descobre um vao
-                print("Inicio vao")
-                if (us.value() - anterior_leitura) > 0: #entrou no vao
-                    matriz_gasoduto[1][passos] = 1
-                    matriz_gasoduto[0][passos] = 0
-                    passos_ant = passos
-                anterior_leitura = us.value()
-                vao = True
-            elif vao and (anterior_leitura - us.value()) > 100: #Vao fechou
-                print("final vao")      
-                print("%d - %d" %(passos_ant, passos+1))
-                for i in range(passos_ant, passos + 1, 1):
-                    matriz_gasoduto[1][i] = 1
-                    matriz_gasoduto[0][i] = 0
-                anterior_leitura = us.value()
-                vao = False
-                
-            tempinho = time.time()
-            print(ir.value(), us.value())
 
-        if ir.value() > 150 and vao_tubo == False: #Descobre um vao de tubo
+    while True:
+        us_value = us.value()
+        ir_value = ir.value()
+        #Abaixo está a detecção do gasoduto
+        if us_value > 150 and vao == False: #Descobre um vao
+            print("Inicio vao")
+            matriz_gasoduto[1][passos] = 1
+            tempinho = time.time()
+            passos_ant = passos
+            vao = True
+        elif vao and us_value < 150: #Vao fechou
+            if (time.time() - tempinho) < 0.5:
+                matriz_gasoduto[1][passos_ant] = 0
+                print("vao falso")
+            else:
+                print("fim vao")
+            vao = False
+
+        #Verificar se ja detectou alguma vez:
+        if not primeiro[0] and (ir_value < 150 or (vao and ir_value < 410)):
+            primeiro[0] = True
+            
+        #Abaixo está a detecção dos canos no gasoduto
+        if ir_value > 150 and vao_tubo == 0: #Descobre um vao de tubo
             if vao:
-                if ir.value() > 410:
+                if ir_value > 410:
                     print("Inicio tubo 2")
                     matriz_gasoduto[1][passos] = 2
-                    vao_tubo = True
+                    vao_tubo = 1
+                    passos_ant2 = passos
             else:
                 print("Inicio tubo")
-                matriz_gasoduto[0][passos] = 2
-                vao_tubo = True
-            passos_ant2 = passos
+                if matriz_gasoduto[0][passos] == 0:
+                    matriz_gasoduto[0][passos] = 2
+                    passos_ant2 = passos
+                else:
+                    matriz_gasoduto[0][passos+1] = 2
+                    passos_ant2 = passos + 1
+
+                if not primeiro[0]:
+                    primeiro[1] = time.time()
+                    matriz_gasoduto[0][passos] = 2
+
+                vao_tubo = 2
+
             espaco = time.time()
-        elif vao_tubo: #Vao de tubo fechou
-            if vao:
-                if ir.value() < 410:
-                    if (time.time() - espaco) < 0.5:
+
+        elif vao_tubo != 0: #Vao de tubo fechou
+            if vao_tubo == 1:
+                if (time.time() - espaco) >= 3:
+                    matriz_gasoduto[1][passos_ant2] = [2, tamanhoCano(time.time() - espaco)]
+                    Entregar_Tubo(p1=passos, p2=passos_ant2, angulo=angulo_inicial)
+                    vao_tubo = 0
+                if ir_value < 410 or not vao:
+                    if (time.time() - espaco) < 0.7:
                         print("tubo falso")
-                        matriz_gasoduto[1][passos_ant2] = 1
+                        matriz_gasoduto[1][passos_ant2] = 0
                     else:
                         print("Fim tubo 2")
                         matriz_gasoduto[1][passos_ant2] = [2, tamanhoCano(time.time() - espaco)]
-                    vao_tubo = False
-            else:
-                if ir.value() < 150:
-                    if (time.time() - espaco) < 0.5:
+                    vao_tubo = 0
+            elif vao_tubo == 2:
+                if (time.time() - espaco) >= 3:
+                    matriz_gasoduto[0][passos_ant2] = [2, tamanhoCano(time.time() - espaco)]
+                    Entregar_Tubo(p1=passos, p2=passos_ant2, angulo=angulo_inicial)
+                    vao_tubo = 0
+                if ir_value < 150 or vao:
+                    if (time.time() - espaco) < 0.7:
                         print("%.2f" %(time.time() - espaco))
                         print("tubo falso")
-                        matriz_gasoduto[0][passos_ant2] = 1
+                        matriz_gasoduto[0][passos_ant2] = 0
                     else:
                         print("%.2f" %(time.time() - espaco))
                         print("Fim tubo")
 
-                        print(passos_ant2)
-
+                        t_tubo = tamanhoCano(time.time() - espaco)
                         matriz_gasoduto[0][passos_ant2] = [2, tamanhoCano(time.time() - espaco)]
                         print(matriz_gasoduto)            
 
-                        if com_tubo:
-                            Entregar_Tubo()
-                           # com_tubo = False
+                        if com_tubo <= t_tubo:
+                            Entregar_Tubo(angulo=angulo_inicial)
+                            #com_tubo = 30 #largou o tubo
                     vao_tubo = False
-        
+
+        #Andar pela matriz
         if passos < 31 and (time.time() - tempo_andar) > 0.85:
             lego.andar(speed = 150, angulo = angulo_inicial)
             passos += 1
             tempo_andar = time.time()
+            #verificar leitura sensores de queda.
         else:
             if passos > 30:
                 return 0
   
-matriz=["0,0","0,1","0,2","0,3","0,4","0,5","0,6","0,7","0,8","0,9","0,10","0,11","0,12"],["1,0","1,1","1,2","1,3","1,4","1,5","1,6","1,7","1,8","1,9","1,10","1,11","1,12"], ["2,0","2,1","2,2","2,3","2,4","2,5","2,6","2,7","2,8","2,9","2,10","2,11","2,12"], ["3,0","3,1","3,2","3,3","3,4","3,5","3,6","3,7","3,8","3,9","3,10","3,11","3,12"],   ["4,0","4,1","4,2","4,3","4,4","4,5","4,6","4,7","4,8","4,9","4,10","4,11","4,12"], ["5,0","5,1","5,2","5,3","5,4","5,5","5,6","5,7","5,8","5,9","5,10","5,11","5,12"],["6,0","6,1","6,2","6,3","6,4","6,5","6,6","6,7","6,8","6,9","6,10","6,11","6,12"],  ["7,0","7,1","7,2","7,3","7,4","7,5","7,6","7,7","7,8","7,9","7,10","7,11","7,12"],["8,0","8,1","8,2","8,3","8,4","8,5","8,6","8,7","8,8","8,9","8,10","8,11","8,12"],["9,0","9,1","9,2","9,3","9,4","9,5","9,6","9,7","9,8","9,9","9,10","9,11","9,12"],["10,0","10,1","10,2","10,3","10,4","10,5","10,6","10,7","10,8","10,9","10,10","10,11","10,12"],["11,0","11,1","11,2","11,3","11,4","11,5","11,6","11,7","11,8","11,9","11,10","11,11","11,12"]
 while(True):
-    minha_posicao = 0
-    linha_inicio = 10
-    coluna_inicio = 10
-
     time.sleep(1)
-    tempo = scan_gasoduto()
+    tempo = scan_gasoduto(10)
     print("tempo: %d" %tempo)
     m1.stop(stop_action="brake")
     m2.stop(stop_action="brake")
