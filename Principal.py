@@ -267,16 +267,18 @@ def Mov_Garra_Analog(Sentido, Pos):
     if Sentido:
         m3.run_to_rel_pos(position_sp=(-1)*Pos,speed_sp=150,stop_action="brake")
         m4.run_to_rel_pos(position_sp=Pos,speed_sp=150,stop_action="brake")
+        time.sleep(1)
     else:
         m3.run_to_rel_pos(position_sp=Pos,speed_sp=150,stop_action="brake")
         m4.run_to_rel_pos(position_sp=(-1)*Pos,speed_sp=150,stop_action="brake")
+        time.sleep(1)
 
 def Para_Motor_Large(speed):
     while True:
         m1.run_forever(speed_sp=speed)
         m2.run_forever(speed_sp=speed)
 
-        if (m1.speed >= speed) or (m2.speed >= speed):
+        if (m1.speed >= speed) and (m2.speed >= speed):
             while True:
                 m1.run_forever(speed_sp=speed)
                 m2.run_forever(speed_sp=speed)
@@ -288,8 +290,17 @@ def Para_Motor_Large(speed):
                     m2.stop(stop_action="brake")
                     break
             break
-        
-def Para_Motor_Medium(speed):
+
+def Cano_Suporte(pos):
+    Mov_Garra_Analog(1, 100)
+    Para_Motor_Large(600)
+    time.sleep(2)
+    Mov_Garra_Analog(0, 180)
+
+    m1.run_to_rel_pos(position_sp=-pos,speed_sp=250,stop_action="brake")
+    m2.run_to_rel_pos(position_sp=-pos,speed_sp=250,stop_action="brake")
+
+'''def Para_Motor_Medium(speed):
     while True:
         m3.run_forever(speed_sp=speed)
         m4.run_forever(speed_sp=-speed)
@@ -312,7 +323,6 @@ def Para_Motor_Medium(speed):
             m4.stop(stop_action="brake")
             break
 
-'''
 def Mov_Garra_Gasoduto():
     if (us.value() < 120):
         while (us.value() < 90):
