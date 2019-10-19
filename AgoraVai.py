@@ -17,46 +17,17 @@ m3 = MediumMotor('outB')
 m4 = MediumMotor('outA')
 
 def Para_Motor_Large(speed):
-    speed = speed
-    alo = speed
-    sumSpeed = 0
-
     while True:
-        speed = alo
-
         m1.run_forever(speed_sp=speed)
         m2.run_forever(speed_sp=speed)
 
-        for i in range(0, 10):
-            sumSpeed = sumSpeed + m3.speed
-        speed = speed * 0.95
-        sumSpeed = sumSpeed / 10
+        if (m1.speed >= speed) or (m2.speed >= speed):
+            while True:
+                m1.run_forever(speed_sp=speed)
+                m2.run_forever(speed_sp=speed)
 
-        if (sumSpeed < speed):
-            m3.stop(stop_action="brake")
-            m4.stop(stop_action="brake")
-        break
+                limite = speed * 0.95
 
-def Para_Motor_Medium(speed):
-    speed = speed
-    alo = speed
-    sumSpeed = 0
 
-    while True:
-        speed = alo
-
-        m3.run_forever(speed_sp=speed)
-        m4.run_forever(speed_sp=(-1)*speed)
-
-        for i in range(0, 10):
-            sumSpeed = sumSpeed + m3.speed
-        speed = speed * 0.95
-        sumSpeed = sumSpeed / 10
-
-        if (sumSpeed < speed):
-            m3.stop(stop_action="brake")
-            m4.stop(stop_action="brake")
-    break
-
-#Para_Motor_Large(600)
-Para_Motor_Medium(0, 600)
+Para_Motor_Large(600)
+#Para_Motor_Medium(600)

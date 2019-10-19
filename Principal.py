@@ -272,6 +272,22 @@ def Mov_Garra_Analog(Sentido, Pos):
         m4.run_to_rel_pos(position_sp=(-1)*Pos,speed_sp=150,stop_action="brake")
 
 def Para_Motor_Large(speed):
+    alo = speed
+
+    while True:
+        speed = alo
+
+        m1.run_forever(speed_sp=speed)
+        m2.run_forever(speed_sp=speed)
+
+        speed2 = speed * 0.94
+
+        if (m1.speed < speed) or (m2.speed < speed):
+            m1.stop(stop_action="brake")
+            m2.stop(stop_action="brake")
+            break
+
+def Para_Motor_LargeV2(speed):
     speed = speed
     alo = speed
 
@@ -284,11 +300,35 @@ def Para_Motor_Large(speed):
         print(m1.speed, " - ", m2.speed)
         time.sleep(0.5)
 
-        speed = speed * 0.95
+        speed = speed * 0.94
 
         if (m1.speed < speed) or (m2.speed < speed):
             m1.stop(stop_action="brake")
             m2.stop(stop_action="brake")
+            break
+
+def Para_Motor_Medium(speed):
+    while True:
+        m3.run_forever(speed_sp=speed)
+        m4.run_forever(speed_sp=-speed)
+
+        sumSpeedM3 = 0
+        sumSpeedM4 = 0
+
+        for i in range(0, 15):
+            if (i < 5):
+                continue
+            sumSpeedM3 = sumSpeedM3 + m3.speed
+            sumSpeedM4 = sumSpeedM4 + m4.speed
+        limite = speed * 0.95
+        
+        sumSpeedM3 = sumSpeedM3 / 10
+        sumSpeedM4 = abs(sumSpeedM4 / 10)
+
+        if (sumSpeedM3 < limite) or (sumSpeedM4 < limite):
+            m3.stop(stop_action="brake")
+            m4.stop(stop_action="brake")
+            break
 
 '''
 def Mov_Garra_Gasoduto():
