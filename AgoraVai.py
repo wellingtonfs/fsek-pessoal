@@ -28,6 +28,19 @@ def Para_Motor_Large(speed):
 
                 limite = speed * 0.95
 
+                if (m1.speed <= limite) or (m1.speed <= limite):
+                    m1.stop(stop_action="brake")
+                    m2.stop(stop_action="brake")
+                    break
+            break
+'''
+while True:
+    m1.run_forever(speed_sp=600)
+    m2.run_forever(speed_sp=600)
+
+    print(m1.speed)
+    print(m2.speed)
+'''    
 
 Para_Motor_Large(600)
 #Para_Motor_Medium(600)
