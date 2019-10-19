@@ -16,18 +16,10 @@ m2 = LargeMotor('outC')
 m3 = MediumMotor('outB')
 m4 = MediumMotor('outA')
 
-speed = 600
-alo = 600
-
-while True:
-    m3.run_forever(speed_sp=150)
-    m4.run_forever(speed_sp=-150)
-    print(m3.speed, " - ", m4.speed)
-
-'''
 def Para_Motor_Large(speed):
     speed = speed
     alo = speed
+    sumSpeed = 0
 
     while True:
         speed = alo
@@ -35,50 +27,36 @@ def Para_Motor_Large(speed):
         m1.run_forever(speed_sp=speed)
         m2.run_forever(speed_sp=speed)
 
-        print(m1.speed, " - ", m2.speed)
-        time.sleep(0.5)
-
+        for i in range(0, 10):
+            sumSpeed = sumSpeed + m3.speed
         speed = speed * 0.95
+        sumSpeed = sumSpeed / 10
 
-        if (m1.speed < speed) or (m2.speed < speed):
-            m1.stop(stop_action="brake")
-            m2.stop(stop_action="brake")
+        if (sumSpeed < speed):
+            m3.stop(stop_action="brake")
+            m4.stop(stop_action="brake")
         break
 
-def Para_Motor_Medium(Sentido, speed):
+def Para_Motor_Medium(speed):
     speed = speed
     alo = speed
+    sumSpeed = 0
 
     while True:
         speed = alo
 
-        if Sentido:
-            m3.run_forever(speed_sp=(-1)*speed)
-            m4.run_forever(speed_sp=speed)
+        m3.run_forever(speed_sp=speed)
+        m4.run_forever(speed_sp=(-1)*speed)
 
-            print(m1.speed, " - ", m2.speed)
-            time.sleep(0.5)
+        for i in range(0, 10):
+            sumSpeed = sumSpeed + m3.speed
+        speed = speed * 0.95
+        sumSpeed = sumSpeed / 10
 
-            speed = speed * 0.95
-
-            if (m1.speed < speed) or (m2.speed < speed):
-                m3.stop(stop_action="brake")
-                m4.stop(stop_action="brake")
-        else:
-            m3.run_forever(speed_sp=speed)
-            m4.run_forever(speed_sp=(-1)*speed)
-
-            print(m1.speed, " - ", m2.speed)
-            time.sleep(0.5)
-
-            speed = speed * 0.95
-
-            if (m1.speed < speed) or (m2.speed < speed):
-                m3.stop(stop_action="brake")
-                m4.stop(stop_action="brake")
-        break
+        if (sumSpeed < speed):
+            m3.stop(stop_action="brake")
+            m4.stop(stop_action="brake")
+    break
 
 #Para_Motor_Large(600)
-Para_Motor_Medium(0, 150)
-
-'''
+Para_Motor_Medium(0, 600)
