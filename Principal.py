@@ -37,7 +37,6 @@ cor2 = ColorSensor('in2') #4
 #us.mode = 'US-DIST-CM'
 #us2.mode = 'US-DIST-CM'
 
-
 #ir = InfraredSensor('in4') #Era no 3
 #ir2 = InfraredSensor('in1')
 

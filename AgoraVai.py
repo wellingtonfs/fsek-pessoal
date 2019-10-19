@@ -2,12 +2,6 @@
 #coding: utf-8
 from ev3dev.ev3 import *
 from threading import *
-
-from ev3dev2.motor import OUTPUT_C, OUTPUT_D, MoveDifferential, SpeedRPM
-from ev3dev2.wheel import EV3EducationSetTire
-from ev3dev2.sensor import INPUT_1
-from ev3dev2.sensor.lego import GyroSensor
-
 import time, socket
 import math
 
@@ -15,79 +9,140 @@ m1 = LargeMotor('outD')
 m2 = LargeMotor('outC')
 m3 = MediumMotor('outB')
 m4 = MediumMotor('outA')
+#us = UltrasonicSensor('in2')
+ir = InfraredSensor('in3')
+ir2 = InfraredSensor('in4')
+Sensor_Cor = [ColorSensor('in1'), ColorSensor('in2')] #1 = Esquerdo, 2 = Direito
 
-def Para_Motor_Large(speed):
-    while True:
-        m1.run_forever(speed_sp=speed)
-        m2.run_forever(speed_sp=speed)
+#us.mode = 'US-DIST-CM'
+ir.mode = 'IR-PROX'
+ir2.mode = 'IR-PROX'
+Sensor_Cor[0].mode = 'COL-COLOR'
+Sensor_Cor[1].mode = 'COL-COLOR'
 
-        if (m1.speed >= speed) and (m2.speed >= speed):
-            while True:
-                m1.run_forever(speed_sp=speed)
-                m2.run_forever(speed_sp=speed)
+def Encontrar_Pos():
+    while True:#Comm.ir_value
+        if Sensor_Cor[0].value() == 1 or Sensor_Cor[1].value() == 1: #Se achar Preto
+            Al = alinhar(1)
+            if Al == 1:
+                Emergencia(80)
+            elif Al == 2:
+                Emergencia(-80)
+            else:
+                m1.stop(stop_action="brake")
+                m2.stop(stop_action="brake")
+                return 0
+        elif Sensor_Cor[0].value() == 3 or Sensor_Cor[1].value() == 3: #Se achar Verde
+            Emergencia(180)
+        elif 20 < ir.value() < 42:
+            print ("Caindo")
+            print (ir.value())
+            Emergencia(90)
+        elif 20 < ir2.value() < 42:
+            print ("Caindo")
+            print (ir2.value())
+            Emergencia(-90)
 
-                limite = speed * 0.95
+        m1.run_forever(speed_sp=300)
+        m2.run_forever(speed_sp=300)
 
-                if (m1.speed <= limite) or (m1.speed <= limite):
-                    m1.stop(stop_action="brake")
-                    m2.stop(stop_action="brake")
-                    break
-            break
+def Emergencia(graus):
+    m1.stop(stop_action="brake")
+    m2.stop(stop_action="brake")
+    m1.run_to_rel_pos(position_sp=-400,speed_sp=200,stop_action="brake")
+    m2.run_to_rel_pos(position_sp=-400,speed_sp=200,stop_action="brake")
+    time.sleep(3)
+    giraRobo(graus)
+    m1.run_forever(speed_sp=300)
+    m2.run_forever(speed_sp=300)
 
-def Para_Motor_Medium(speed):
-    while True:
-        m3.run_forever(speed_sp=speed)
-        m4.run_forever(speed_sp=-speed)
+def gyro(an):
+    baseAngle = gy.value()
 
-        sumSpeedM3 = 0
-        sumSpeedM4 = 0
+    mdiff.turn_left(SpeedRPM(40), an)
+    time.sleep(0.5)
 
-        for i in range(0, 15):
-            if (i < 5):
-                continue
-            sumSpeedM3 = sumSpeedM3 + m3.speed
-            sumSpeedM4 = sumSpeedM4 + m4.speed
-        limite = speed * 0.95
-        
-        sumSpeedM3 = sumSpeedM3 / 10
-        sumSpeedM4 = abs(sumSpeedM4 / 10)
+    angle = abs(gy.value() - baseAngle)
+    diffAng = angle - an
 
-        if (sumSpeedM3 < limite) or (sumSpeedM4 < limite):
-            m3.stop(stop_action="brake")
-            m4.stop(stop_action="brake")
-            break
-
-def Mov_Garra_Analog(Sentido, Pos):
-    if Sentido:
-        m3.run_to_rel_pos(position_sp=(-1)*Pos,speed_sp=150,stop_action="brake")
-        m4.run_to_rel_pos(position_sp=Pos,speed_sp=150,stop_action="brake")
-        time.sleep(1)
+    if(diffAng < 0):
+        mdiff.turn_left(SpeedRPM(40), abs(diffAng))
     else:
-        m3.run_to_rel_pos(position_sp=Pos,speed_sp=150,stop_action="brake")
-        m4.run_to_rel_pos(position_sp=(-1)*Pos,speed_sp=150,stop_action="brake")
-        time.sleep(1)
-
-def Mov_Garra_Sensor(Sentido, Pos): #0 = descer; 1 = subir;
-    if Sentido: 
-        if (us.value() < 400):
-            while (us.value() < 100):
-                m3.run_to_rel_pos(position_sp=(-1)*Pos,speed_sp=150,stop_action="brake")
-                m4.run_to_rel_pos(position_sp=Pos,speed_sp=150,stop_action="brake")
-                time.sleep(0.5)
-    else: 
-        while (us.value() > 45):
-                m3.run_to_rel_pos(position_sp=Pos,speed_sp=150,stop_action="brake")
-                m4.run_to_rel_pos(position_sp=(-1)*Pos,speed_sp=150,stop_action="brake")
-                time.sleep(0.5)
+        mdiff.turn_right(SpeedRPM(40), abs(diffAng))
     time.sleep(2)
 
-def Cano_Suporte(pos):
-    Mov_Garra_Analog(1, 100)
-    Para_Motor_Large(600)
-    time.sleep(2)
-    Mov_Garra_Analog(0, 180)
+def giraRobo(graus, tempo = 2): #90 > 0: direita else: esquerda
+    razaoRobo = 5.25 / 3.0
 
-    m1.run_to_rel_pos(position_sp=-pos,speed_sp=250,stop_action="brake")
-    m2.run_to_rel_pos(position_sp=-pos,speed_sp=250,stop_action="brake")
+    m1.stop(stop_action="brake")
+    m2.stop(stop_action="brake")
+    time.sleep(0.3)
 
-Cano_Suporte(200)
+    if graus > 0:
+        m1.run_to_rel_pos(position_sp=(razaoRobo*graus),speed_sp=280,stop_action="brake")
+        m2.run_to_rel_pos(position_sp=-(razaoRobo*graus),speed_sp=280,stop_action="brake")
+    else:
+        m1.run_to_rel_pos(position_sp=-(razaoRobo*(graus*-1)),speed_sp=280,stop_action="brake")
+        m2.run_to_rel_pos(position_sp=(razaoRobo*(graus*-1)),speed_sp=280,stop_action="brake")
+    if tempo != 0:
+        time.sleep(tempo)
+
+def alinhar(c): #Essa função alinha o lego a uma cor especifica c.
+    if Sensor_Cor[0].value() == c and Sensor_Cor[1].value() == c:
+        return 0
+    while True:
+        if Sensor_Cor[0].value() == c:
+            m1.stop(stop_action="brake")
+            m2.stop(stop_action="brake")
+            while Sensor_Cor[0].value() == c:
+                m1.run_forever(speed_sp=-50)
+                m2.run_forever(speed_sp=-50)
+            m1.stop(stop_action="brake")
+            m2.stop(stop_action="brake")
+            #m1.run_forever(speed_sp=-150)
+            m2.run_forever(speed_sp=100)
+            while Sensor_Cor[1].value() != c:
+                if Sensor_Cor[1].value() == 0:
+                    return 1
+                if Sensor_Cor[0].value() != c:
+                    m2.stop(stop_action="brake")
+                    m1.run_forever(speed_sp=70)
+                else:
+                    m1.stop(stop_action="brake")
+                    m2.run_forever(speed_sp=100)
+                if 20 < ir2.value() < 42:
+                    return 2
+            break
+
+        if Sensor_Cor[1].value() == c:
+            m1.stop(stop_action="brake")
+            m2.stop(stop_action="brake")
+            while Sensor_Cor[1].value() == c:
+                m1.run_forever(speed_sp=-50)
+                m2.run_forever(speed_sp=-50)
+            m1.stop(stop_action="brake")
+            m2.stop(stop_action="brake")
+            m1.run_forever(speed_sp=100)
+            #m2.run_forever(speed_sp=-150)
+            while Sensor_Cor[0].value() != c:
+                if Sensor_Cor[0].value() == 0:
+                    return 1
+                if Sensor_Cor[1].value() != c:
+                    m1.stop(stop_action="brake")
+                    m2.run_forever(speed_sp=70)
+                else:
+                    m1.run_forever(speed_sp=100)
+                    m2.stop(stop_action="brake")
+                if 20 < ir.value() < 42:
+                    return 1
+            break
+
+    m1.run_forever(speed_sp=250)
+    m2.run_forever(speed_sp=250)
+    time.sleep(1)
+    m1.stop(stop_action="brake")
+    m2.stop(stop_action="brake")
+    return 0
+
+
+Encontrar_Pos()
