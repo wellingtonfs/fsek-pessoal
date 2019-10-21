@@ -8,16 +8,14 @@ from threading import *
 motor_left = LargeMotor('outC')
 motor_right = LargeMotor('outD')
 
-'''
+us = UltrasonicSensor('in2')
+us.mode = 'US-DIST-CM'
+
+#gy = GyroSensor('in1')
+#gy.mode = 'GYRO-ANG'
+  
 ir = InfraredSensor('in4')
 ir.mode = 'IR-PROX'
-'''
-
-ir = UltrasonicSensor('in4')
-ir.mode = 'US-DIST-CM'
-
-#motor_a = MediumMotor('outA')
-#motor_b = MediumMotor('outB')
 
 def getch():
     fd = sys.stdin.fileno()
@@ -63,7 +61,7 @@ class mostrar(Thread):
 
     def run(self):
         while True:
-            print(ir.value())
+            print("%d  -  %d" %(us.value(), ir.value()))
             time.sleep(0.5)
 
 p = mostrar()

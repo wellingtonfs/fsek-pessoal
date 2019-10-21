@@ -16,6 +16,7 @@ class andar(Thread):
         self.parando = False
         self.vel = 200
         self.ang = 0.2
+        self.parado = False
         Thread.__init__(self)
 
     def run(self):
@@ -42,29 +43,75 @@ class andar(Thread):
                 self.andando = False
                 self.parando = False
                 self.ang = 0.2
+                self.parado = False
 
     def andar(self, speed = 200, angulo = 0.2):
+        while self.parado:
+            pass
         self.andando = True
+        self.parando = False
         self.vel = speed
         self.ang = angulo
 
     def parar(self):
         self.parando = True
+        self.parado = True
 
 lego = andar()
 lego.daemon = True
 lego.start()
 
-lego = andar()
-lego.daemon = True
-lego.start()
+def Ir_Pos_Matriz(pIni, pFim, angulo): #testar em outro arquivo..
+    tempo_andar = time.time()
+    while True:
+        if pIni == pFim:
+            return 0
+        elif pIni < pFim:
+            if pIni < pFim and (time.time() - tempo_andar) > 0.85:
+                lego.andar(speed = 150, angulo = angulo)
+                pIni += 1
+                tempo_andar = time.time()
+            else:
+                if pIni == pFim:
+                    return 0
+        else:
+            if pIni > pFim and (time.time() - tempo_andar) > 0.85:
+                lego.andar(speed = -150, angulo = angulo)
+                pIni -= 1
+                tempo_andar = time.time()
+            else:
+                if pIni == pFim:
+                    return 0
+
+def Girar(ang):
+    atual = gy.value()
+    if ang > 0:
+        ang -= 3
+        while abs(gy.value() - atual) < abs(ang):
+            m1.run_forever(speed_sp=100)
+            m2.run_forever(speed_sp=-100)
+    else:
+        ang += 3
+        while abs(gy.value() - atual) < abs(ang):
+            m1.run_forever(speed_sp=-100)
+            m2.run_forever(speed_sp=100)
+    
+    m1.stop(stop_action="brake")
+    m2.stop(stop_action="brake")
 
 while True:
-    a = eval(input("Digite um numero: "))
-    if a == -1:
+    a = input("Digite um numero: ")
+    if a[0] == '-':
         lego.andar(speed=-200)
-    elif a == 1:
+    elif a[0] == '+':
         lego.andar(speed=200)
-    elif a == 0:
+    elif a[0] == '0':
         lego.parar()
+    elif a[0] == '.':
+        Ir_Pos_Matriz(int(a[1]), int(a[2]), gy.value())
+    elif a[0] == '<':
+        Girar(-90)
+    elif a[0] == '>':
+        Girar(90)
+        
     
