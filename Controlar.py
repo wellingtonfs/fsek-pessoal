@@ -27,14 +27,14 @@ def getch():
     return ch
 
 def forward():
-    motor_left.run_forever(speed_sp=200)
-    motor_right.run_forever(speed_sp=200)
+    motor_left.run_forever(speed_sp=400)
+    motor_right.run_forever(speed_sp=400)
 
 #==============================================
 
 def back():
-    motor_left.run_forever(speed_sp=-200)
-    motor_right.run_forever(speed_sp=-200)
+    motor_left.run_forever(speed_sp=-400)
+    motor_right.run_forever(speed_sp=-400)
 
 #==============================================
 
