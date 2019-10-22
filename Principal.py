@@ -297,6 +297,7 @@ def Cano_Suporte(pos):
 
     m1.run_to_rel_pos(position_sp=-pos,speed_sp=250,stop_action="brake")
     m2.run_to_rel_pos(position_sp=-pos,speed_sp=250,stop_action="brake")
+    time.sleep(2)
 
 '''def Para_Motor_Medium(speed):
     while True:
