@@ -5,17 +5,17 @@ from ev3dev.ev3 import *
 from threading import *
 
 # attach large motors to ports B and C, medium motor to port A
-motor_left = LargeMotor('outC')
 motor_right = LargeMotor('outD')
+motor_left = LargeMotor('outA')
 
-us = UltrasonicSensor('in2')
+us = UltrasonicSensor('in3')
 us.mode = 'US-DIST-CM'
 
 #gy = GyroSensor('in1')
 #gy.mode = 'GYRO-ANG'
   
-ir = InfraredSensor('in4')
-ir.mode = 'IR-PROX'
+us2 = UltrasonicSensor('in2')
+us2.mode = 'US-DIST-CM'
 
 def getch():
     fd = sys.stdin.fileno()
@@ -61,7 +61,7 @@ class mostrar(Thread):
 
     def run(self):
         while True:
-            print("%d  -  %d" %(us.value(), ir.value()))
+            print("%d  -  %d" %(us.value(), us2.value()))
             time.sleep(0.5)
 
 p = mostrar()
