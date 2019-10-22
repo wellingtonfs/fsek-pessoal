@@ -8,12 +8,12 @@ import time, socket, json
 import math
 
 tank = MoveTank(OUTPUT_C, OUTPUT_D)
-m1 = LargeMotor('outD')
-m2 = LargeMotor('outC')
+m1 = LargeMotor('outD') #Direito
+m2 = LargeMotor('outC') # Esquerdo
 m3 = MediumMotor('outB')
 m4 = MediumMotor('outA')
-us = UltrasonicSensor('in3')
-us2 = UltrasonicSensor('in4')
+us = UltrasonicSensor('in3') #Direto
+us2 = UltrasonicSensor('in4') #esquerdo
 gy = GyroSensor('in1')
 us3 = UltrasonicSensor('in2')
 #Sensor_Cor = [ColorSensor('in2'), ColorSensor('in1')] #2 = Esquerdo, 1 = Direito
@@ -128,7 +128,7 @@ def giraRobo(graus, tempo = 2): #90 > 0: direita else: esquerda
     if tempo != 0:
         time.sleep(tempo)
 
-def alinhar(c, Sentido, temp): #Essa função alinha o lego a uma cor especifica c.
+def alinharP(c, Sentido, temp): #Essa função alinha o lego a uma cor especifica c.
     if Comm.sc_value == c and Comm.sc2_value == c:
         return 0
     while True:
@@ -185,57 +185,96 @@ def alinhar(c, Sentido, temp): #Essa função alinha o lego a uma cor especifica
     time.sleep(1)
     return 0
 
-def alinhar_ultra(): #Essa função alinha o lego a uma cor especifica c.
-    m1.stop(stop_action="brake")
-    m2.stop(stop_action="brake")
-    if us.value() > 140 and us2.value() > 140:
+def alinhar(c): #Essa função alinha o lego a uma cor especifica c.
+    if Comm.sc_value == c and Comm.sc2_value == c:
         return 0
     while True:
-        if us.value() > 140:
+        if Comm.sc_value == c:
             m1.stop(stop_action="brake")
             m2.stop(stop_action="brake")
-            while us.value() > 140:
+            while Comm.sc_value == c:
                 m1.run_forever(speed_sp=-50)
                 m2.run_forever(speed_sp=-50)
             m1.stop(stop_action="brake")
             m2.stop(stop_action="brake")
             #m1.run_forever(speed_sp=-150)
             m2.run_forever(speed_sp=100)
-            while us2.value() < 140:
-                if us2.value() > 140:
+            while Comm.sc2_value != c:
+                if Comm.sc2_value == 0:
                     return 1
-                if us.value() < 140:
+                if Comm.sc_value != c:
                     m2.stop(stop_action="brake")
                     m1.run_forever(speed_sp=70)
                 else:
                     m1.stop(stop_action="brake")
                     m2.run_forever(speed_sp=100)
-                if 40 < us2.value() < 400:
+                if 70 < us2.value() < 400:
                     return 2
             break
 
-        if us2.value() > 140:
+        if Comm.sc2_value == c:
             m1.stop(stop_action="brake")
             m2.stop(stop_action="brake")
-            while us2.value() > 140:
+            while Comm.sc2_value == c:
                 m1.run_forever(speed_sp=-50)
                 m2.run_forever(speed_sp=-50)
             m1.stop(stop_action="brake")
             m2.stop(stop_action="brake")
             m1.run_forever(speed_sp=100)
             #m2.run_forever(speed_sp=-150)
-            while us.value() < 140:
-                if us.value() > 140:
+            while Comm.sc_value != c:
+                if Comm.sc_value == 0:
                     return 1
-                if us2.value() < 140:
+                if Comm.sc2_value != c:
                     m1.stop(stop_action="brake")
                     m2.run_forever(speed_sp=70)
                 else:
                     m1.run_forever(speed_sp=100)
                     m2.stop(stop_action="brake")
-                if 40 < us.value() < 400:
+                if 70 < us.value() < 400:
                     return 1
             break
+
+    m1.run_forever(speed_sp=250)
+    m2.run_forever(speed_sp=250)
+    time.sleep(1)
+    m1.stop(stop_action="brake")
+    m2.stop(stop_action="brake")
+    return 0
+
+
+def alinhar_ultra(): #Essa função alinha o lego a uma cor especifica c.
+    if us.value() > 100 and us2.value() > 100:
+        return 0
+    if us.value() > 100:
+        m1.stop(stop_action="brake")
+        m2.stop(stop_action="brake")
+        while us.value() > 100:
+            m1.run_forever(speed_sp=-50)
+            m2.run_forever(speed_sp=-50)
+        m1.stop(stop_action="brake")
+        m2.stop(stop_action="brake")
+        #m1.run_forever(speed_sp=-150)
+        m2.run_forever(speed_sp=100)
+        while us2.value() < 100:
+            pass
+
+    if us2.value() > 100:
+        m1.stop(stop_action="brake")
+        m2.stop(stop_action="brake")
+        while us2.value() > 100:
+            m1.run_forever(speed_sp=-50)
+            m2.run_forever(speed_sp=-50)
+        m1.stop(stop_action="brake")
+        m2.stop(stop_action="brake")
+        m1.run_forever(speed_sp=100)
+        #m2.run_forever(speed_sp=-150)
+        while us.value() < 100:
+            pass
+
+    m1.stop(stop_action="brake")
+    m2.stop(stop_action="brake")
+    time.sleep(1)
     return 0
 
 def Mov_Garra_Sensor(Sentido, Pos): #0 = descer; 1 = subir;
@@ -414,7 +453,7 @@ def PegarTubo():
             break
 
     if(us3.value() < 80):
-        Mov_Garra_Sensor(0, 150)
+        Mov_Garra_Sensor(1, 150)
         tank.on_for_degrees(10, 10, -360)
         rotateTo(180)
         rotateTo(-baseAngle)
@@ -431,27 +470,46 @@ def PegarTubo():
 while True:
     m1.run_forever(speed_sp=150)
     m2.run_forever(speed_sp=150)
-    if alinhar(1, -250, 3) == 0:
-        giraRobo(-90)
+    if alinharP(1, -250, 3) == 0:
+        rotateTo(-90)
         while True:
-            while (us.value() < 140) or (us2.value() < 140):
+            while (us.value() < 100) or (us2.value() < 100):
                 m1.run_forever(speed_sp=150)
                 m2.run_forever(speed_sp=150)
-            if alinhar_ultra() == 0:
-                m1.stop(stop_action="brake")
-                m2.stop(stop_action="brake")
-                time.sleep(0.5)
-                m1.run_forever(speed_sp=-150)
-                m2.run_forever(speed_sp=-150)
-                time.sleep(5)
-                m1.stop(stop_action="brake")
-                m2.stop(stop_action="brake")
-                giraRobo(90)
-                walkUntilColor(1)
-                alinhar(1, 0, 1)
-                m1.stop(stop_action="brake")
-                m2.stop(stop_action="brake")
-                PegarTubo()
-                Mov_Garra_Sensor(1, 150)
-                break
-        break
+            alinhar_ultra():
+            m1.stop(stop_action="brake")
+            m2.stop(stop_action="brake")
+            m1.run_forever(speed_sp=-150)
+            m2.run_forever(speed_sp=-150)
+            time.sleep(5)
+            m1.stop(stop_action="brake")
+            m2.stop(stop_action="brake")
+            rotateTo(90)
+            walkUntilColor(1)
+            alinharP(1, 0, 1)
+            m1.stop(stop_action="brake")
+            m2.stop(stop_action="brake")
+            PegarTubo()
+            if alinharP(1, 150, 3) == 0:
+                rotateTo(90)
+            while (us.value() < 100):
+                m1.run_forever(speed_sp=140)
+                m2.run_forever(speed_sp=140)
+            m1.stop(stop_action="brake")
+            m2.stop(stop_action="brake")
+            m1.run_to_rel_pos(position_sp=(-100),speed_sp=180,stop_action="brake")
+            m2.run_to_rel_pos(position_sp=(-100),speed_sp=180,stop_action="brake")
+            rotateTo(90)
+            while True :
+                if Comm.sc_value == 2 or Comm.sc_value == 2:
+                    alinhar(2)
+                    print("achei o azul")
+                    m1.stop(stop_action="brake")
+                    m2.stop(stop_action="brake")
+                    break
+                m1.run_forever(speed_sp=140)
+                m2.run_forever(speed_sp=140)
+                if(us.value() > 100):
+                    m1.stop(stop_action="brake")
+                    m2.stop(stop_action="brake")
+            break
