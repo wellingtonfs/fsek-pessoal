@@ -2,15 +2,21 @@
 from ev3dev.ev3 import *
 import time
 
-us = UltrasonicSensor('in4')
-us.mode = 'US-DIST-CM'
+m1 = LargeMotor('outC')
+m2 = LargeMotor('outD')
 
-gy = GyroSensor('in1')
-gy.mode = 'GYRO-ANG'
-  
-ir = InfraredSensor('in2')
-ir.mode = 'IR-PROX'
+arq = open("Dados.txt", "w")
+arq.write(" Leituras: \n\n")
+arq.close()
+
+def salvar(x):
+    arq = open("Dados.txt", "a")
+    s = "%d, %d\n" %(x[0], x[1])
+    arq.write(s)
+    arq.close()
+
+m1.run_forever(speed_sp=200)
+m2.run_forever(speed_sp=200)
 
 while(True):
-    print("%d  -  %d  -  %d" %(us.value(), ir.value(), gy.value()))
-    time.sleep(0.5)
+    salvar([m1.speed, m2.speed])
