@@ -449,7 +449,7 @@ def c_tubo(tam_tubo):
             balanco = [0, 0]
         lego.andar(speed=150)
 
-        if Comm.us_value > 100 or Comm.us2_value > 100:
+        if us.value() > 100 or us2.value() > 100:
             fim = True
             lego.parar()
 
