@@ -6,7 +6,7 @@ from threading import *
 
 # attach large motors to ports B and C, medium motor to port A
 motor_right = LargeMotor('outD')
-motor_left = LargeMotor('outA')
+motor_left = LargeMotor('outC')
 
 us = UltrasonicSensor('in3')
 us.mode = 'US-DIST-CM'

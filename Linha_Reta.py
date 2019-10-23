@@ -7,7 +7,7 @@ from threading import *
 import time
 import math
 
-m1 = LargeMotor('outA')
+m1 = LargeMotor('outC')
 m2 = LargeMotor('outD')
 m3 = MediumMotor('outB') #Motor mais alto
 m4 = MediumMotor('outA') #Motor mais baixo
@@ -33,6 +33,8 @@ def getch():
 
     return ch
 
+balanco = [0, 0]
+
 class andar(Thread):
     def __init__(self):
         self.andando = False
@@ -44,22 +46,24 @@ class andar(Thread):
 
     def run(self):
         global gy
+        #teste:
+        global balanco
         while True:
             if self.andando:
-                angulo_base = gy.value()
-                if self.ang != 0.2:
-                    angulo_base = self.ang
+                #angulo_base = gy.value()
+                #if self.ang != 0.2:
+                #    angulo_base = self.ang
                 speed1, speed2 = self.vel, self.vel
                 while self.parando == False:
-                    g = gy.value()
-                    if g > angulo_base:
-                        speed1 = self.vel - 0
-                    elif g < angulo_base:
-                        speed2 = self.vel - 0
-                    else:
-                        speed1, speed2 = self.vel, self.vel
-                    m1.run_forever(speed_sp=speed1)
-                    m2.run_forever(speed_sp=speed2)
+                    #g = gy.value()
+                    #if balanco > angulo_base:
+                    #    speed1 = self.vel - 0
+                    #elif g < angulo_base:
+                    #    speed2 = self.vel - 0
+                    #else:
+                    #    speed1, speed2 = self.vel, self.vel
+                    m1.run_forever(speed_sp=(speed1+balanco[0]))
+                    m2.run_forever(speed_sp=(speed2+balanco[1]))
                 m1.stop(stop_action="brake")
                 m2.stop(stop_action="brake")
 
@@ -93,6 +97,28 @@ class andar(Thread):
 lego = andar()
 lego.daemon = True
 lego.start()
+
+#teste
+class mostrar(Thread):
+    def __init__(self):
+        Thread.__init__(self)
+
+    def run(self):
+        global balanco
+        while True:
+            k = getch()
+
+            if k == 'd':
+                balanco = 10
+            elif k == 'a':
+                balanco = -10
+            elif k == 'q':
+                exit()
+            time.sleep(0.2)
+
+p = mostrar()
+p.daemon = True
+p.start()
 
 '''
 class Communication(Thread):
@@ -213,6 +239,7 @@ def Testar_Dist(virar = True):
     if all(i > 2300 for i in valores) or all(i < 2300 for i in valores):
         if virar:
             Girar(90)
+        print("t_dist 1: ", (somar / int(len(valores))))
         return (somar / int(len(valores)))
     else:
         somar = [0, 0]
@@ -222,19 +249,14 @@ def Testar_Dist(virar = True):
                 somar[1] += 1
         if virar:
             Girar(90)
+        print("t_dist 2: ", (somar[0] / somar[1]))
         return (somar[0] / somar[1])
 
 def Arrumar_Angulo():
     m = -1
     while True:
-        l = us2.value()
-        if l > 2500:
-            return 1
-        a = l
+        a = Testar_Dist(virar=False)
         lego.andar_tempo(speed=m*150, tempo=0.9)
-        l = us2.value()
-        if l > 2500:
-            return 1
         b = Testar_Dist(virar=False)
         print("primeiro: ", abs(b - a))
         if abs(b - a) < 3:
@@ -254,9 +276,10 @@ def Arrumar_Angulo():
         return 0
 
 def c_tubo(tam_tubo):
-    '''
+    global balanco
     vao, vao_tubo = False, False
     #com_tubo = tam_tubo
+
     tempos = {
         "vao_baixo": 0,
         "matriz": 0,
@@ -267,18 +290,76 @@ def c_tubo(tam_tubo):
         "Estados": 0,
         "Tarefa": 0,
         "Distancia": 0,
-        "L_Anterior": 0
+        "L_Anterior": 0,
+        "Trava": 0
     }
-    '''
-    while True:
-        Arrumar_Angulo()
-        a = input("Angulo arrumado: ...")
-        print(a)
-    return 0
 
-        
+    ant = 90
+    while True:
+        us_value = int(us.value())
+        us2_value = int(us2.value())
+        if us2_value > 2549:
+            continue
+
+        #Abaixo está a detecção do gasoduto ------------------------------------------------------------------
+        if 200 < us2_value < 2500 and vao == False: #Descobre um vao
+            print("Inicio vao", us2_value)
+            tempos['vao_baixo'] = time.time()
+            vao_tubo = False
+            vao = True
+
+        elif vao: #Vao fechou
+            if (time.time() - tempos['vao_baixo']) > 1.1:
+                print("fim vao")
+                vao_tubo = False
+                vao = False
+            else:
+                print("vao falso: ", (time.time() - tempos['vao_baixo']))
+                vao = False
+            
+        #Abaixo está a detecção dos canos no gasoduto --------------------------------------------------------
+        if us_value > 200 and not vao_tubo: #Descobre um vao de tubo
+            print("Inicio tubo", us_value)
+            vao_tubo = True
+            tempos['vao_alto'] = time.time()
+
+        elif vao_tubo or var['Trava'] != 0: #Vao de tubo fechou
+            if ((time.time() - tempos['vao_alto']) >= 3) and (not vao or var['Trava'] == 2):
+                print("fim tubo por tempo", (time.time() - tempos['vao_alto']))
+                print((time.time() - tempos['vao_alto']))
+                Entregar_Tubo(tempo=(time.time() - tempos['vao_alto']))
+                vao_tubo = False
+                var['Trava'] = 0
+
+            elif us_value < 200 and (not vao or var['Trava'] == 2):
+                if (time.time() - tempos['vao_alto']) > 1.1:
+                    if var['Trava'] == 3:
+                        lego.andar_tempo(speed=-150, tempo=((time.time() - tempos['vao_alto'])+1))
+                        var['Distancia'] += ((time.time() - tempos['vao_alto'])+1) * 30
+                        print("fim vao com trava")
+                        tempos['matriz'] = 0
+                    else:
+                        print("fim tubo", (time.time() - tempos['vao_alto']))
+                        Entregar_Tubo(tempo=(time.time() - tempos['vao_alto']))
+                vao_tubo = False
+                var['Trava'] = 0
+                
+        #andar em uma linha reta se guiando pelo ultrasonic: ant é o valor q eu quero de distancia entre o brick e o gasoduto
+        if (us2_value - ant) > 2:
+            if (us2_value - ant) > 5:
+                balanco[0] = 15
+            else:
+                balanco[0] = 10
+        elif (us2_value - ant) < -2:
+            if (us2_value - ant) < -5:
+                balanco[1] = 15
+            else:
+                balanco[1] = 10
+        else:
+            balanco = [0, 0]
+        lego.andar(speed=150)
 
 time.sleep(1)
-tempo = c_tubo(10)
+c_tubo(10)
 print("acabou")
 time.sleep(10)
