@@ -296,7 +296,9 @@ def c_tubo(tam_tubo):
 
     cascata = [0, 0, 0]
     temp = 0
-    ant = 90
+    ant = us2.value()
+    while ant > 1000:
+        ant = Testar_Dist(virar=False)
     while True:
         us_value = int(us.value())
         us2_value = int(us2.value())
@@ -324,6 +326,9 @@ def c_tubo(tam_tubo):
                 Girar(-90)
                 vao_tubo = False
                 vao = False
+                ant = us2.value()
+                while ant > 1000:
+                    ant = Testar_Dist(virar=False)
             else:
                 print("vao falso: ", (time.time() - tempos['vao_baixo']))
                 vao = False
@@ -379,16 +384,19 @@ def c_tubo(tam_tubo):
                 lego.andar_tempo(speed=150, tempo=1)
                 cascata[1] = 0
 
-        if (us2_value - ant) > 2:
-            if (us2_value - ant) > 5:
-                balanco[0] = 15
+        if not vao:
+            if (us2_value - ant) > 2:
+                if (us2_value - ant) > 5:
+                    balanco[0] = 15
+                else:
+                    balanco[0] = 10
+            elif (us2_value - ant) < -2:
+                if (us2_value - ant) < -5:
+                    balanco[1] = 15
+                else:
+                    balanco[1] = 10
             else:
-                balanco[0] = 10
-        elif (us2_value - ant) < -2:
-            if (us2_value - ant) < -5:
-                balanco[1] = 15
-            else:
-                balanco[1] = 10
+                balanco = [0, 0]
         else:
             balanco = [0, 0]
         lego.andar(speed=150)
