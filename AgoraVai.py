@@ -7,7 +7,7 @@ from ev3dev2.motor import OUTPUT_C, OUTPUT_D, MoveTank
 import time, socket, json
 import math
 
-tank = MoveTank(OUTPUT_C, OUTPUT_D)
+tank = MoveTank(OUTPUT_D, OUTPUT_C)
 m1 = LargeMotor('outD') #Direito
 m2 = LargeMotor('outC') # Esquerdo
 m3 = MediumMotor('outB')
@@ -33,27 +33,36 @@ class Communication(Thread):
 
     def run(self):
         while True:
-            try:
-                with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-                    s.bind(('169.255.168.150', 3571))
-                    s.listen()
-                    while True:
-                        conn, addr = s.accept()
-                        with conn:
-                            while True:
-                                data = conn.recv(1024)
+            #try:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+                s.bind(('169.255.168.150', 3572))
+                s.listen()
+                while True:
+                    conn, addr = s.accept()
+                    with conn:
+                        while True:
+                            data = conn.recv(1024)
 
-                                if not data:
-                                    break
+                            if not data:
+                                break
 
+                            Sedex = 0
+                            try:
                                 Sedex = json.loads(data.decode())
-                                self.sc_value = Sedex['sc']
-                                self.sc2_value = Sedex['sc2']
-
-            except Exception as e:
-                print(e)
-                time.sleep(0.5)
+                            except:
+                                st = data.decode()
+                                st = st[2, 3]
+                                for i in range(len(st)):
+                                    if st[i] == '}':
+                                        Sedex = json.loads(st[0:i+1])
+                                        break
+                                        
+                            self.sc_value = Sedex['sc']
+                            self.sc2_value = Sedex['sc2']
+            #except Exception as e:
+             #   print(e)
+              #  time.sleep(0.5)
 
 Comm = Communication()
 Comm.daemon = True
@@ -324,7 +333,7 @@ def walkUntilDistance(distance, speed = 10, limit = 0):
 def walkUntilColor(color, speed = 10, limit = 0):
     tank.on(speed, speed)
     count = 0
-    while Comm.sc_value != color and Comm.sc_value != color:
+    while Comm.sc_value != color and Comm.sc2_value != color:
         count += 1
         if(limit != 0 and count > limit):
             return False
@@ -407,16 +416,14 @@ def alignWithTube(degrees, count = 0, test = True):
 
     if(tube['dist'] == 500 and test):
         tank.on_for_degrees(10, 10, 180)
-        alignWithTube(90, count + 1)
-        return True;
+        return alignWithTube(90, count + 1)
 
     if tube['dist'] == 500 and not test:
         tank.on_for_degrees(10, 10, -180)
-        alignWithTube(60, count + 1)
-        return True
+        return alignWithTube(60, count + 1)
 
     rotateTo(tube['angle'])
-    return tube['angle'];
+    return tube['angle']
 
 def backOriginalPosition(baseAngle):
     walkUntilDistance(2000, speed = -10, limit = 1500)
@@ -470,13 +477,61 @@ def PegarTubo():
 while True:
     m1.run_forever(speed_sp=150)
     m2.run_forever(speed_sp=150)
-    if alinharP(1, -250, 3) == 0:
+    if (Comm.sc_value == 1) or (Comm.sc2_value == 1):
+        alinharP(1, -250, 3)
+        rotateTo(90)
+        while (us.value() < 100) or (us2.value() < 100):
+            m1.run_forever(speed_sp=150)
+            m2.run_forever(speed_sp=150)
+        alinhar_ultra()
+        m1.stop(stop_action="brake")
+        m2.stop(stop_action="brake")
+        m1.run_forever(speed_sp=-150)
+        m2.run_forever(speed_sp=-150)
+        time.sleep(5)
+        m1.stop(stop_action="brake")
+        m2.stop(stop_action="brake")
         rotateTo(-90)
+        walkUntilColor(1)
+        alinharP(1, 0, 1)
+        m1.stop(stop_action="brake")
+        m2.stop(stop_action="brake")
+        PegarTubo()
+        alinharP(1, 150, 3)
+        rotateTo(-90)
+        while (us.value() < 100):
+            m1.run_forever(speed_sp=140)
+            m2.run_forever(speed_sp=140)
+        m1.stop(stop_action="brake")
+        m2.stop(stop_action="brake")
+        m1.run_to_rel_pos(position_sp=(-100),speed_sp=180,stop_action="brake")
+        m2.run_to_rel_pos(position_sp=(-100),speed_sp=180,stop_action="brake")
+        rotateTo(-90)
+        while True :
+            if (Comm.sc_value == 2) or (Comm.sc_value == 2):
+                alinhar(2)
+                m1.stop(stop_action="brake")
+                m2.stop(stop_action="brake")
+                break
+            m1.run_forever(speed_sp=140)
+            m2.run_forever(speed_sp=140)
+            if(us.value() > 100):
+                m1.stop(stop_action="brake")
+                m2.stop(stop_action="brake")
+        break
+    if (Comm.sc_value == 3) or (Comm.sc2_value == 3):
+        alinharP(3, -250, 3)
+        rotateTo(180)
+    if (50 < us.value() > 70) or (50 < us.value() > 70):
+        if (us.value() > 50):
+            rotateTo(90)
+        else:
+            rotateTo(-90)
         while True:
             while (us.value() < 100) or (us2.value() < 100):
                 m1.run_forever(speed_sp=150)
                 m2.run_forever(speed_sp=150)
-            alinhar_ultra():
+            alinhar_ultra()
             m1.stop(stop_action="brake")
             m2.stop(stop_action="brake")
             m1.run_forever(speed_sp=-150)
@@ -484,14 +539,14 @@ while True:
             time.sleep(5)
             m1.stop(stop_action="brake")
             m2.stop(stop_action="brake")
-            rotateTo(90)
+            rotateTo(-90)
             walkUntilColor(1)
             alinharP(1, 0, 1)
             m1.stop(stop_action="brake")
             m2.stop(stop_action="brake")
             PegarTubo()
             if alinharP(1, 150, 3) == 0:
-                rotateTo(90)
+                rotateTo(-90)
             while (us.value() < 100):
                 m1.run_forever(speed_sp=140)
                 m2.run_forever(speed_sp=140)
@@ -499,7 +554,7 @@ while True:
             m2.stop(stop_action="brake")
             m1.run_to_rel_pos(position_sp=(-100),speed_sp=180,stop_action="brake")
             m2.run_to_rel_pos(position_sp=(-100),speed_sp=180,stop_action="brake")
-            rotateTo(90)
+            rotateTo(-90)
             while True :
                 if Comm.sc_value == 2 or Comm.sc_value == 2:
                     alinhar(2)

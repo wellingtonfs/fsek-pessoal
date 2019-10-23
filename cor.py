@@ -59,7 +59,7 @@ class mostrar(Thread):
 
     def run(self):
         while True:
-            print("%d  -  %d" %(Sensor_Cor[0].value(), Sensor_Cor[1].value()))
+            print("%d  -  %d" %(us.value(), us2.value()))
             time.sleep(0.5)
 
 p = mostrar()
