@@ -163,7 +163,7 @@ def Ir_Pos_Matriz(pIni, pFim, angulo): #testar em outro arquivo..
                 if pIni == pFim:
                     return 0
 
-def Girar(ang):
+def rotateTo(ang):
     atual = gy.value()
     if ang > 0:
         ang -= 3
@@ -217,19 +217,22 @@ def Cano_Suporte(pos):
     m2.run_to_rel_pos(position_sp=-pos,speed_sp=250,stop_action="brake")
     time.sleep(1)
 
-def Entregar_Tubo(angulo = 0, tempo = 0):
+def Entregar_Tubo(angulo = 0, tempo = 0, tam=0):
     lego.parar()
-    lego.andar_tempo(speed=-150, tempo=(tempo - 1))
-    Girar(90)
+    if tam < 20:
+        lego.andar_tempo(speed=-150, tempo=(tempo - 1))
+    else:
+        lego.andar_tempo(speed=-150, tempo=(tempo - 2))
+    rotateTo(90)
     print("colocando o tubo")
     Cano_Suporte(200)
-    Girar(-90)
+    rotateTo(-90)
     lego.andar_tempo(speed=150, tempo=tempo)
 
 def Testar_Dist(virar = True):
     lego.parar()
     if virar:
-        Girar(-90)
+        rotateTo(-90)
     valores = []
     somar = 0
     for i in [-10, 5, 5, -5]:
@@ -237,11 +240,11 @@ def Testar_Dist(virar = True):
         print(u)
         valores.append(u)
         somar += u
-        Girar(i)
+        rotateTo(i)
 
     if all(i > 2300 for i in valores) or all(i < 2300 for i in valores):
         if virar:
-            Girar(90)
+            rotateTo(90)
         print("t_dist 1: ", (somar / int(len(valores))))
         return (somar / int(len(valores)))
     else:
@@ -251,7 +254,7 @@ def Testar_Dist(virar = True):
                 somar[0] += i
                 somar[1] += 1
         if virar:
-            Girar(90)
+            rotateTo(90)
         print("t_dist 2: ", (somar[0] / somar[1]))
         return (somar[0] / somar[1])
 
@@ -266,11 +269,11 @@ def Arrumar_Angulo():
             break
         else:
             if m < 0:
-                Girar((a - b))
+                rotateTo((a - b))
                 print("m < 0: ", (a - b))
             else:
                 print("m > 0: ", (b - a))
-                Girar((b - a))
+                rotateTo((b - a))
         m *= -1
     if m > 1:
         lego.andar_tempo(speed=-150, tempo=0.9)
@@ -296,7 +299,7 @@ def c_tubo(tam_tubo):
         "L_Anterior": 0
     }
 
-    ant = 100
+    ant = Testar_Dist(virar=False)
     while True:
         us_value = int(us.value())
         us2_value = int(us2.value())
@@ -309,7 +312,7 @@ def c_tubo(tam_tubo):
                 lego.andar_tempo(speed=150, tempo=l/100)
                 l = Testar_Dist()
             var['Estados'] = 1
-            Girar(-90)
+            rotateTo(-90)
         else:   
             #Abaixo está a detecção dos canos no gasoduto --------------------------------------------------------
             if us_value > 200 and not vao_tubo: #Descobre um vao de tubo
@@ -320,13 +323,13 @@ def c_tubo(tam_tubo):
             elif vao_tubo: #Vao de tubo fechou
                 if ((time.time() - tempos['vao_alto']) >= 3):
                     print("fim tubo por tempo", (time.time() - tempos['vao_alto']))
-                    Entregar_Tubo(tempo=(time.time() - tempos['vao_alto']))
+                    Entregar_Tubo(tempo=(time.time() - tempos['vao_alto']), tam=tam_tubo)
                     vao_tubo = False
 
                 elif us_value < 200:
                     if (time.time() - tempos['vao_alto']) > 1.1:
                         print("fim tubo", (time.time() - tempos['vao_alto']))
-                        Entregar_Tubo(tempo=(time.time() - tempos['vao_alto']))
+                        Entregar_Tubo(tempo=(time.time() - tempos['vao_alto']), tam=tam_tubo)
                     vao_tubo = False
 
             #andar em uma linha reta se guiando pelo ultrasonic: ant é o valor q eu quero de distancia entre o brick e o gasoduto

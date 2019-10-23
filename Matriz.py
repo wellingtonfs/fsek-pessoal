@@ -160,7 +160,7 @@ def Ir_Pos_Matriz(pIni, pFim, angulo): #testar em outro arquivo..
                 if pIni == pFim:
                     return 0
 
-def Girar(ang):
+def rotateTo(ang):
     atual = gy.value()
     if ang > 0:
         ang -= 3
@@ -214,19 +214,22 @@ def Cano_Suporte(pos):
     m2.run_to_rel_pos(position_sp=-pos,speed_sp=250,stop_action="brake")
     time.sleep(2)
 
-def Entregar_Tubo(angulo = 0, tempo = 0):
+def Entregar_Tubo(angulo = 0, tempo = 0, tam=0):
     lego.parar()
-    lego.andar_tempo(speed=-150, tempo=tempo)
-    #Girar(90)
+    if tam < 20:
+        lego.andar_tempo(speed=-150, tempo=(tempo - 1))
+    else:
+        lego.andar_tempo(speed=-150, tempo=(tempo - 2))
+    rotateTo(90)
     print("colocando o tubo")
-    #Cano_Suporte(200)
-    #Girar(-90)
+    Cano_Suporte(200)
+    rotateTo(-90)
     lego.andar_tempo(speed=150, tempo=tempo)
 
 def Testar_Dist(virar = True):
     lego.parar()
     if virar:
-        Girar(-90)
+        rotateTo(-90)
     valores = []
     somar = 0
     for i in [-10, 5, 5, -5]:
@@ -234,11 +237,11 @@ def Testar_Dist(virar = True):
         print(u)
         valores.append(u)
         somar += u
-        Girar(i)
+        rotateTo(i)
 
     if all(i > 2300 for i in valores) or all(i < 2300 for i in valores):
         if virar:
-            Girar(90)
+            rotateTo(90)
         print("t_dist 1: ", (somar / int(len(valores))))
         return (somar / int(len(valores)))
     else:
@@ -248,7 +251,7 @@ def Testar_Dist(virar = True):
                 somar[0] += i
                 somar[1] += 1
         if virar:
-            Girar(90)
+            rotateTo(90)
         print("t_dist 2: ", (somar[0] / somar[1]))
         return (somar[0] / somar[1])
 
@@ -263,11 +266,11 @@ def Arrumar_Angulo():
             break
         else:
             if m < 0:
-                Girar((a - b))
+                rotateTo((a - b))
                 print("m < 0: ", (a - b))
             else:
                 print("m > 0: ", (b - a))
-                Girar((b - a))
+                rotateTo((b - a))
         m *= -1
     if m > 1:
         lego.andar_tempo(speed=-150, tempo=0.9)
@@ -321,9 +324,9 @@ def c_tubo(tam_tubo):
                     cascata[0] = (time.time() - tempos['vao_baixo']) + 1
                 temp = time.time()
                 lego.andar_tempo(speed=-150, tempo=((time.time() - tempos['vao_baixo']) - 1))
-                Girar(90)
+                rotateTo(90)
                 lego.andar_tempo(speed=150, tempo = 2)
-                Girar(-90)
+                rotateTo(-90)
                 vao_tubo = False
                 vao = False
                 ant = us2.value()
@@ -343,7 +346,7 @@ def c_tubo(tam_tubo):
             if ((time.time() - tempos['vao_alto']) >= 3) and (not vao or var['Trava'] == 2):
                 print("fim tubo por tempo", (time.time() - tempos['vao_alto']))
                 print((time.time() - tempos['vao_alto']))
-                Entregar_Tubo(tempo=(time.time() - tempos['vao_alto']))
+                Entregar_Tubo(tempo=(time.time() - tempos['vao_alto']), tam=tam_tubo)
                 vao_tubo = False
                 var['Trava'] = 0
 
@@ -356,7 +359,7 @@ def c_tubo(tam_tubo):
                         tempos['matriz'] = 0
                     else:
                         print("fim tubo", (time.time() - tempos['vao_alto']))
-                        Entregar_Tubo(tempo=(time.time() - tempos['vao_alto']))
+                        Entregar_Tubo(tempo=(time.time() - tempos['vao_alto']), tam=tam_tubo)
                 vao_tubo = False
                 var['Trava'] = 0
 
@@ -368,9 +371,9 @@ def c_tubo(tam_tubo):
                 lego.andar(speed=150)
             else:
                 lego.andar_tempo(speed=-150, tempo=2)
-                Girar(-90)
+                rotateTo(-90)
                 lego.andar_tempo(speed=150, tempo=3.5)
-                Girar(90)
+                rotateTo(90)
                 lego.andar_tempo(speed=150, tempo=1)
                 cascata[0] = 0
         else:
@@ -378,9 +381,9 @@ def c_tubo(tam_tubo):
                 lego.andar(speed=150)
             else:
                 lego.andar_tempo(speed=-150, tempo=2)
-                Girar(-90)
+                rotateTo(-90)
                 lego.andar_tempo(speed=150, tempo=3.5)
-                Girar(90)
+                rotateTo(90)
                 lego.andar_tempo(speed=150, tempo=1)
                 cascata[1] = 0
 
