@@ -299,6 +299,10 @@ def c_tubo(tam_tubo):
 
     cascata = [0, 0, 0]
     temp = 0
+    leituras = []
+    fim = False
+    re = False
+
     ant = us2.value()
     while ant > 1000:
         ant = Testar_Dist(virar=False)
@@ -314,8 +318,9 @@ def c_tubo(tam_tubo):
             tempos['vao_baixo'] = time.time()
             vao_tubo = False
             vao = True
+            re = True
 
-        elif vao and us2_value < 200: #Vao fechou
+        elif vao and us2_value < 200 or fim: #Vao fechou
             if (time.time() - tempos['vao_baixo']) > 1.1:
                 print("fim vao")
                 if cascata[0] != 0:
@@ -329,13 +334,53 @@ def c_tubo(tam_tubo):
                 rotateTo(-90)
                 vao_tubo = False
                 vao = False
+                re = False
                 ant = us2.value()
                 while ant > 1000:
                     ant = Testar_Dist(virar=False)
             else:
                 print("vao falso: ", (time.time() - tempos['vao_baixo']))
                 vao = False
-            
+                re = False
+            if fim:
+                if vao:
+                    if cascata[0] != 0:
+                        print("fim sem conseguir")
+                        return 0
+                    else:
+                        if (time.time() - tempos['vao_baixo']) > 1.1:
+                            print("fim vao")
+                            if cascata[0] != 0:
+                                cascata[1] = (time.time() - tempos['vao_baixo']) + 1
+                            else:
+                                cascata[0] = (time.time() - tempos['vao_baixo']) + 1
+                            temp = time.time()
+                            lego.andar_tempo(speed=-150, tempo=((time.time() - tempos['vao_baixo']) - 1))
+                            rotateTo(90)
+                            lego.andar_tempo(speed=150, tempo = 2)
+                            rotateTo(-90)
+                            vao_tubo = False
+                            vao = False
+                            re = False
+                            ant = us2.value()
+                            while ant > 1000:
+                                ant = Testar_Dist(virar=False)
+                        else:
+                            print("fim sem conseguir 2")
+                else:
+                    print("fim sem conseguir 3")
+                    return 0
+
+        elif vao:
+            leituras.append(us2_value)
+            if (time.time() - tempos['vao_baixo']) > 0.5:
+                somatorio = 0
+                for i in range(len(leituras)):
+                    somatorio += leituras[i]
+                somatorio /= int(len(leituras))
+                ant = somatorio
+                re = False
+
         #Abaixo está a detecção dos canos no gasoduto --------------------------------------------------------
         if us_value > 200 and not vao_tubo: #Descobre um vao de tubo
             print("Inicio tubo", us_value)
@@ -347,6 +392,7 @@ def c_tubo(tam_tubo):
                 print("fim tubo por tempo", (time.time() - tempos['vao_alto']))
                 print((time.time() - tempos['vao_alto']))
                 Entregar_Tubo(tempo=(time.time() - tempos['vao_alto']), tam=tam_tubo)
+                return 1
                 vao_tubo = False
                 var['Trava'] = 0
 
@@ -360,6 +406,7 @@ def c_tubo(tam_tubo):
                     else:
                         print("fim tubo", (time.time() - tempos['vao_alto']))
                         Entregar_Tubo(tempo=(time.time() - tempos['vao_alto']), tam=tam_tubo)
+                        return 1
                 vao_tubo = False
                 var['Trava'] = 0
 
@@ -387,7 +434,7 @@ def c_tubo(tam_tubo):
                 lego.andar_tempo(speed=150, tempo=1)
                 cascata[1] = 0
 
-        if not vao:
+        if not re:
             if (us2_value - ant) > 2:
                 if (us2_value - ant) > 5:
                     balanco[0] = 15
@@ -403,6 +450,10 @@ def c_tubo(tam_tubo):
         else:
             balanco = [0, 0]
         lego.andar(speed=150)
+
+        if us.value() > 100 or us2.value() > 100:
+            fim = True
+            lego.parar()
 
 time.sleep(1)
 c_tubo(10)
