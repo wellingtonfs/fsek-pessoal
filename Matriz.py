@@ -346,6 +346,7 @@ def c_tubo(tam_tubo):
                 if vao:
                     if cascata[0] != 0:
                         print("fim sem conseguir")
+                        lego.andar_tempo(speed=-150, tempo=3)
                         return 0
                     else:
                         if (time.time() - tempos['vao_baixo']) > 1.1:
@@ -369,6 +370,7 @@ def c_tubo(tam_tubo):
                             print("fim sem conseguir 2")
                 else:
                     print("fim sem conseguir 3")
+                    lego.andar_tempo(speed=-150, tempo=3)
                     return 0
 
         elif vao:
@@ -447,7 +449,8 @@ def c_tubo(tam_tubo):
                 balanco = [0, 0]
         else:
             balanco = [0, 0]
-        lego.andar(speed=150)
+        if not fim:
+            lego.andar(speed=150)
 
         if us.value() > 100 or us2.value() > 100:
             fim = True
