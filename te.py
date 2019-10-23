@@ -15,6 +15,7 @@ m4 = MediumMotor('outA')
 us = UltrasonicSensor('in3')
 us2 = UltrasonicSensor('in4')
 us3 = UltrasonicSensor('in2')
+gy = GyroSensor('in1')
 #Sensor_Cor = [ColorSensor('in2'), ColorSensor('in1')] #2 = Esquerdo, 1 = Direito
 
 us.mode = 'US-DIST-CM'
@@ -26,55 +27,42 @@ gy.mode = 'GYRO-ANG'
 
 
 def alinhar_ultra(): #Essa função alinha o lego a uma cor especifica c.
-    if us.value() > 140 and us2.value() > 140:
+    if us.value() > 100 and us2.value() > 100:
         return 0
-    while True:
-        if us.value() > 140:
-            m1.stop(stop_action="brake")
-            m2.stop(stop_action="brake")
-            while us.value() > 140:
-                m1.run_forever(speed_sp=-50)
-                m2.run_forever(speed_sp=-50)
-            m1.stop(stop_action="brake")
-            m2.stop(stop_action="brake")
-            #m1.run_forever(speed_sp=-150)
-            m2.run_forever(speed_sp=100)
-            while us2.value() < 140:
-                if us2.value() > 140:
-                    return 1
-                if us.value() < 140:
-                    m2.stop(stop_action="brake")
-                    m1.run_forever(speed_sp=70)
-                else:
-                    m1.stop(stop_action="brake")
-                    m2.run_forever(speed_sp=100)
-                if 40 < us2.value() < 400:
-                    return 2
-            break
+    if us.value() > 100:
+        m1.stop(stop_action="brake")
+        m2.stop(stop_action="brake")
+        while us.value() > 100:
+            m1.run_forever(speed_sp=-50)
+            m2.run_forever(speed_sp=-50)
+        m1.stop(stop_action="brake")
+        m2.stop(stop_action="brake")
+        #m1.run_forever(speed_sp=-150)
+        m2.run_forever(speed_sp=100)
+        while us2.value() < 100:
+            pass
 
-        if us2.value() > 140:
-            m1.stop(stop_action="brake")
-            m2.stop(stop_action="brake")
-            while us2.value() > 140:
-                m1.run_forever(speed_sp=-50)
-                m2.run_forever(speed_sp=-50)
-            m1.stop(stop_action="brake")
-            m2.stop(stop_action="brake")
-            m1.run_forever(speed_sp=100)
-            #m2.run_forever(speed_sp=-150)
-            while us.value() < 140:
-                if us.value() > 140:
-                    return 1
-                if us2.value() < 140:
-                    m1.stop(stop_action="brake")
-                    m2.run_forever(speed_sp=70)
-                else:
-                    m1.run_forever(speed_sp=100)
-                    m2.stop(stop_action="brake")
-                if 40 < us.value() < 400:
-                    return 1
-            break
+    if us2.value() > 100:
+        m1.stop(stop_action="brake")
+        m2.stop(stop_action="brake")
+        while us2.value() > 100:
+            m1.run_forever(speed_sp=-50)
+            m2.run_forever(speed_sp=-50)
+        m1.stop(stop_action="brake")
+        m2.stop(stop_action="brake")
+        m1.run_forever(speed_sp=100)
+        #m2.run_forever(speed_sp=-150)
+        while us.value() < 100:
+            pass
+
     m1.stop(stop_action="brake")
     m2.stop(stop_action="brake")
     time.sleep(1)
     return 0
+
+while True:
+    m1.run_forever(speed_sp=150)
+    m2.run_forever(speed_sp=150)
+    if (us.value() > 100) or (us2.value() > 100):
+        alinhar_ultra()
+        break

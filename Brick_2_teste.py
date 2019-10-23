@@ -16,7 +16,7 @@ class Communication(Thread):
         while True:
             try:
                 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                    s.connect(('169.255.168.150', 3571))
+                    s.connect(('169.255.168.150', 3572))
                 
                     while True:
 
@@ -26,7 +26,7 @@ class Communication(Thread):
                         }
 
                         s.send(json.dumps(Sedex).encode())
-                        time.sleep(0.1)
+                        #time.sleep(0.1)
             except Exception as e:
                 print(e)
                 s.close()
