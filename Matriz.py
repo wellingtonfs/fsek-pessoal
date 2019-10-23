@@ -233,7 +233,7 @@ def Testar_Dist(virar = True):
     valores = []
     somar = 0
     for i in [-10, 5, 5, -5]:
-        u = us2.value()
+        u = Comm.us2_value
         print(u)
         valores.append(u)
         somar += u
@@ -303,12 +303,12 @@ def c_tubo(tam_tubo):
     fim = False
     re = False
 
-    ant = us2.value()
+    ant = Comm.us2_value
     while ant > 1000:
         ant = Testar_Dist(virar=False)
     while True:
-        us_value = int(us.value())
-        us2_value = int(us2.value())
+        us_value = int(Comm.us_value)
+        us2_value = int(Comm.us2_value)
         if us2_value > 2549:
             continue
 
@@ -335,7 +335,7 @@ def c_tubo(tam_tubo):
                 vao_tubo = False
                 vao = False
                 re = False
-                ant = us2.value()
+                ant = Comm.us2_value
                 while ant > 1000:
                     ant = Testar_Dist(virar=False)
             else:
@@ -362,7 +362,7 @@ def c_tubo(tam_tubo):
                             vao_tubo = False
                             vao = False
                             re = False
-                            ant = us2.value()
+                            ant = Comm.us2_value
                             while ant > 1000:
                                 ant = Testar_Dist(virar=False)
                         else:
@@ -393,8 +393,6 @@ def c_tubo(tam_tubo):
                 print((time.time() - tempos['vao_alto']))
                 Entregar_Tubo(tempo=(time.time() - tempos['vao_alto']), tam=tam_tubo)
                 return 1
-                vao_tubo = False
-                var['Trava'] = 0
 
             elif us_value < 200 and (not vao or var['Trava'] == 2):
                 if (time.time() - tempos['vao_alto']) > 1.1:
@@ -451,7 +449,7 @@ def c_tubo(tam_tubo):
             balanco = [0, 0]
         lego.andar(speed=150)
 
-        if us.value() > 100 or us2.value() > 100:
+        if Comm.us_value > 100 or Comm.us2_value > 100:
             fim = True
             lego.parar()
 
