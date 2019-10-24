@@ -106,8 +106,6 @@ class mostrar(Thread):
     def run(self):
         global balanco
         while True:
-            pass
-            '''
             k = getch()
 
             if k == 'd':
@@ -117,7 +115,6 @@ class mostrar(Thread):
             elif k == 'q':
                 exit()
             time.sleep(0.2)
-            '''
 
 p = mostrar()
 p.daemon = True
@@ -209,13 +206,41 @@ def Para_Motor_Large(speed):
 
 def Cano_Suporte(pos):
     Mov_Garra_Analog(1, 100)
-    lego.andar_tempo(speed=150, tempo=4)
-    Mov_Garra_Analog(0, 180)
+    Para_Motor_Large(600)
     time.sleep(2)
+    Mov_Garra_Analog(0, 180)
 
     m1.run_to_rel_pos(position_sp=-pos,speed_sp=250,stop_action="brake")
     m2.run_to_rel_pos(position_sp=-pos,speed_sp=250,stop_action="brake")
-    time.sleep(1)
+    time.sleep(2)
+
+'''
+
+def Testar_Dist():
+    lego.parar()
+    valores = []
+    somar = 0
+    for i in [1, -1, 1, -1]:
+        u = Comm.us2_value
+        print(u)
+        valores.append(u)
+        somar += u
+        lego.andar_tempo(speed=(i*200), tempo=0.3)
+        time.sleep(0.3)
+
+    if all(i > 2300 for i in valores) or all(i < 2300 for i in valores):
+        print("t_dist 1: ", (somar / int(len(valores))))
+        return (somar / int(len(valores)))
+    else:
+        somar = [0, 0]
+        for i in valores:
+            if i < 2300:
+                somar[0] += i
+                somar[1] += 1
+        print("t_dist 2: ", (somar[0] / somar[1]))
+        return (somar[0] / somar[1])
+
+'''
 
 def Entregar_Tubo(angulo = 0, tempo = 0, tam=0):
     lego.parar()
@@ -236,7 +261,7 @@ def Testar_Dist(virar = True):
     valores = []
     somar = 0
     for i in [-10, 5, 5, -5]:
-        u = us2.value()
+        u = Comm.us2_value
         print(u)
         valores.append(u)
         somar += u
@@ -293,46 +318,151 @@ def c_tubo(tam_tubo):
     }
 
     var = {
-        "Estados": 1,
+        "Estados": 0,
         "Tarefa": 0,
         "Distancia": 0,
-        "L_Anterior": 0
+        "L_Anterior": 0,
+        "Trava": 0
     }
 
-    ant = Testar_Dist(virar=False)
+    cascata = [0, 0, 0]
+    temp = 0
+    leituras = []
+    fim = False
+    re = False
+
+    ant = Comm.us2_value
+    while ant > 1000:
+        ant = Testar_Dist(virar=False)
     while True:
-        us_value = int(us.value())
-        us2_value = int(us2.value())
+        us_value = int(Comm.us_value)
+        us2_value = int(Comm.us2_value)
         if us2_value > 2549:
             continue
 
-        if var['Estados'] == 0:
-            l = Testar_Dist()
-            while l > 110:
-                lego.andar_tempo(speed=150, tempo=l/100)
-                l = Testar_Dist()
-            var['Estados'] = 1
-            rotateTo(-90)
-        else:   
-            #Abaixo está a detecção dos canos no gasoduto --------------------------------------------------------
-            if us_value > 200 and not vao_tubo: #Descobre um vao de tubo
-                print("Inicio tubo", us_value)
-                vao_tubo = True
-                tempos['vao_alto'] = time.time()
+        #Abaixo está a detecção do gasoduto ------------------------------------------------------------------
+        if 200 < us2_value < 2500 and vao == False: #Descobre um vao
+            print("Inicio vao", us2_value)
+            tempos['vao_baixo'] = time.time()
+            vao_tubo = False
+            vao = True
+            re = True
 
-            elif vao_tubo: #Vao de tubo fechou
-                if ((time.time() - tempos['vao_alto']) >= 3):
-                    print("fim tubo por tempo", (time.time() - tempos['vao_alto']))
-                    Entregar_Tubo(tempo=(time.time() - tempos['vao_alto']), tam=tam_tubo)
-                    vao_tubo = False
+        elif vao and us2_value < 200 or fim: #Vao fechou
+            if (time.time() - tempos['vao_baixo']) > 1.1:
+                print("fim vao")
+                if cascata[0] != 0:
+                    cascata[1] = (time.time() - tempos['vao_baixo']) + 1
+                else:
+                    cascata[0] = (time.time() - tempos['vao_baixo']) + 1
+                temp = time.time()
+                lego.andar_tempo(speed=-150, tempo=((time.time() - tempos['vao_baixo']) - 1))
+                rotateTo(90)
+                lego.andar_tempo(speed=150, tempo = 2)
+                rotateTo(-90)
+                vao_tubo = False
+                vao = False
+                re = False
+                ant = Comm.us2_value
+                while ant > 1000:
+                    ant = Testar_Dist(virar=False)
+            else:
+                print("vao falso: ", (time.time() - tempos['vao_baixo']))
+                vao = False
+                re = False
+            if fim:
+                if vao:
+                    if cascata[0] != 0:
+                        print("fim sem conseguir")
+                        lego.andar_tempo(speed=-150, tempo=3)
+                        return 0
+                    else:
+                        if (time.time() - tempos['vao_baixo']) > 1.1:
+                            print("fim vao")
+                            if cascata[0] != 0:
+                                cascata[1] = (time.time() - tempos['vao_baixo']) + 1
+                            else:
+                                cascata[0] = (time.time() - tempos['vao_baixo']) + 1
+                            temp = time.time()
+                            lego.andar_tempo(speed=-150, tempo=((time.time() - tempos['vao_baixo']) - 1))
+                            rotateTo(90)
+                            lego.andar_tempo(speed=150, tempo = 2)
+                            rotateTo(-90)
+                            vao_tubo = False
+                            vao = False
+                            re = False
+                            ant = Comm.us2_value
+                            while ant > 1000:
+                                ant = Testar_Dist(virar=False)
+                        else:
+                            print("fim sem conseguir 2")
+                else:
+                    print("fim sem conseguir 3")
+                    lego.andar_tempo(speed=-150, tempo=3)
+                    return 0
 
-                elif us_value < 200:
-                    if (time.time() - tempos['vao_alto']) > 1.1:
+        elif vao:
+            leituras.append(us2_value)
+            if (time.time() - tempos['vao_baixo']) > 0.5:
+                somatorio = 0
+                for i in range(len(leituras)):
+                    somatorio += leituras[i]
+                somatorio /= int(len(leituras))
+                ant = somatorio
+                re = False
+
+        #Abaixo está a detecção dos canos no gasoduto --------------------------------------------------------
+        if us_value > 200 and not vao_tubo: #Descobre um vao de tubo
+            print("Inicio tubo", us_value)
+            vao_tubo = True
+            tempos['vao_alto'] = time.time()
+
+        elif vao_tubo or var['Trava'] != 0: #Vao de tubo fechou
+            if ((time.time() - tempos['vao_alto']) >= 3) and (not vao or var['Trava'] == 2):
+                print("fim tubo por tempo", (time.time() - tempos['vao_alto']))
+                print((time.time() - tempos['vao_alto']))
+                Entregar_Tubo(tempo=(time.time() - tempos['vao_alto']), tam=tam_tubo)
+                return 1
+
+            elif us_value < 200 and (not vao or var['Trava'] == 2):
+                if (time.time() - tempos['vao_alto']) > 1.1:
+                    if var['Trava'] == 3:
+                        lego.andar_tempo(speed=-150, tempo=((time.time() - tempos['vao_alto'])+1))
+                        var['Distancia'] += ((time.time() - tempos['vao_alto'])+1) * 30
+                        print("fim vao com trava")
+                        tempos['matriz'] = 0
+                    else:
                         print("fim tubo", (time.time() - tempos['vao_alto']))
                         Entregar_Tubo(tempo=(time.time() - tempos['vao_alto']), tam=tam_tubo)
-                    vao_tubo = False
+                        return 1
+                vao_tubo = False
+                var['Trava'] = 0
 
-            #andar em uma linha reta se guiando pelo ultrasonic: ant é o valor q eu quero de distancia entre o brick e o gasoduto
+        #andar em uma linha reta se guiando pelo ultrasonic: ant é o valor q eu quero de distancia entre o brick e o gasoduto
+        if cascata[0] == 0:
+            lego.andar(speed=150)
+        elif cascata[1] == 0:
+            if (time.time() - temp) <= cascata[0]:
+                lego.andar(speed=150)
+            else:
+                lego.andar_tempo(speed=-150, tempo=2)
+                rotateTo(-90)
+                lego.andar_tempo(speed=150, tempo=3.5)
+                rotateTo(90)
+                lego.andar_tempo(speed=150, tempo=1)
+                cascata[0] = 0
+        else:
+            if (time.time() - temp) <= cascata[1]:
+                lego.andar(speed=150)
+            else:
+                lego.andar_tempo(speed=-150, tempo=2)
+                rotateTo(-90)
+                lego.andar_tempo(speed=150, tempo=3.5)
+                rotateTo(90)
+                lego.andar_tempo(speed=150, tempo=1)
+                cascata[1] = 0
+
+        if not re:
             if (us2_value - ant) > 2:
                 if (us2_value - ant) > 5:
                     balanco[0] = 15
@@ -345,7 +475,14 @@ def c_tubo(tam_tubo):
                     balanco[1] = 10
             else:
                 balanco = [0, 0]
+        else:
+            balanco = [0, 0]
+        if not fim:
             lego.andar(speed=150)
+
+        if us.value() > 100 or us2.value() > 100:
+            fim = True
+            lego.parar()
 
 time.sleep(1)
 c_tubo(10)

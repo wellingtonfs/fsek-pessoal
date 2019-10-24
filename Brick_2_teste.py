@@ -4,15 +4,17 @@ from ev3dev.ev3 import *
 from threading import *
 import socket, time, json, math
 
-Sensor_Cor = [ColorSensor('in1'), ColorSensor('in2')] #1 = Esquerdo, 2 = Direito
-Sensor_Cor[0].mode = 'COL-COLOR'
-Sensor_Cor[1].mode = 'COL-COLOR'
+uc = UltrasonicSensor('in1')
+uc.mode = 'US-DIST-CM'
 
-us = UltrasonicSensor('in3')
-us.mode = 'US-DIST-CM'
+uf = UltrasonicSensor('in2')
+uf.mode = 'US-DIST-CM'
 
-us2 = UltrasonicSensor('in4')
-us2.mode = 'US-DIST-CM'
+ub = UltrasonicSensor('in3')
+ub.mode = 'US-DIST-CM'
+
+ut = UltrasonicSensor('in4')
+ub.mode = 'US-DIST-CM'
 
 class Communication(Thread):
     def __init__(self):
@@ -27,10 +29,10 @@ class Communication(Thread):
                     while True:
 
                         Sedex = {
-                            "sc" : int(Sensor_Cor[0].value()),
-                            "sc2" : int(Sensor_Cor[1].value()),
-                            "us" : int(us.value()),
-                            "us2" : int(us2.value())
+                            "uc" : int(uc.value()),
+                            "uf" : int(uf.value()),
+                            "ub" : int(ub.value()),
+                            "ut" : int(ut.value())
                         }
 
                         s.send(json.dumps(Sedex).encode())

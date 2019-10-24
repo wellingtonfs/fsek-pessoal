@@ -8,14 +8,8 @@ from threading import *
 motor_right = LargeMotor('outD')
 motor_left = LargeMotor('outC')
 
-us = UltrasonicSensor('in3')
-us.mode = 'US-DIST-CM'
-
 #gy = GyroSensor('in1')
 #gy.mode = 'GYRO-ANG'
-  
-us2 = UltrasonicSensor('in2')
-us2.mode = 'US-DIST-CM'
 
 def getch():
     fd = sys.stdin.fileno()
@@ -54,19 +48,6 @@ def stop():
     motor_left.run_forever(speed_sp=0)
     motor_right.run_forever(speed_sp=0)
 #==============================================
-
-class mostrar(Thread):
-    def __init__(self):
-        Thread.__init__(self)
-
-    def run(self):
-        while True:
-            print("%d  -  %d" %(us.value(), us2.value()))
-            time.sleep(0.5)
-
-p = mostrar()
-p.daemon = True
-p.start()
 
 while True:
     k = getch()
