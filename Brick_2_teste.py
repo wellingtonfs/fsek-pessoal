@@ -10,11 +10,11 @@ uc.mode = 'US-DIST-CM'
 uf = UltrasonicSensor('in2')
 uf.mode = 'US-DIST-CM'
 
-ub = UltrasonicSensor('in3')
-ub.mode = 'US-DIST-CM'
+ir = InfraredSensor('in3')
+ir.mode = 'IR-PROX'
 
 ut = UltrasonicSensor('in4')
-ub.mode = 'US-DIST-CM'
+ut.mode = 'US-DIST-CM'
 
 class Communication(Thread):
     def __init__(self):
@@ -31,7 +31,7 @@ class Communication(Thread):
                         Sedex = {
                             "uc" : int(uc.value()),
                             "uf" : int(uf.value()),
-                            "ub" : int(ub.value()),
+                            "ir" : int(ir.value()),
                             "ut" : int(ut.value())
                         }
 

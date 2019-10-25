@@ -15,8 +15,10 @@ m4 = MediumMotor('outA') #Motor mais baixo
 gy = GyroSensor('in3')
 gy.mode = 'GYRO-ANG'
 
-ir = InfraredSensor('in4')
-ir.mode = 'IR-PROX'
+ub = UltrasonicSensor('in4')
+ub.mode = 'US-DIST-CM'
+
+ubL = 0
 
 def rotateTo(ang):
     atual = gy.value()
@@ -37,8 +39,8 @@ def rotateTo(ang):
 class Communication(Thread):
     def __init__(self):
         self.uc_value = 0
-        self.ub_value = 0
         self.ut_value = 0
+        self.ir_value = 0
         self.uf_value = 0
         Thread.__init__(self)
 
@@ -69,8 +71,8 @@ class Communication(Thread):
                                             break
                                             
                                 self.uc_value = Sedex['uc']
-                                self.ub_value = Sedex['ub']
                                 self.ut_value = Sedex['ut']
+                                self.ir_value = Sedex['ir']
                                 self.uf_value = Sedex['uf']
             except Exception as e:
                 print(e)
@@ -80,16 +82,51 @@ Comm = Communication()
 Comm.daemon = True
 Comm.start()
 
+def Testar_Dist():
+    lego.parar()
+
+    def g(valor, a):
+        if a:
+            m1.run_to_rel_pos(position_sp=-valor, speed_sp=100, stop_action="brake")
+            m2.run_to_rel_pos(position_sp=valor, speed_sp=100, stop_action="brake")
+        else:
+            m1.run_to_rel_pos(position_sp=valor, speed_sp=100, stop_action="brake")
+            m2.run_to_rel_pos(position_sp=-valor, speed_sp=100, stop_action="brake")
+
+    valores = []
+    somar = 0
+    for i in [True, False, False, True]:
+        u = ub.value()
+        valores.append(u)
+        somar += u
+        g(30, i)
+        time.sleep(0.5)
+
+    if all(i > 2300 for i in valores) or all(i < 2300 for i in valores):
+        print("t_dist 1: ", (somar / int(len(valores))))
+        return (somar / int(len(valores)))
+    else:
+        somar = [0, 0]
+        for i in valores:
+            if i < 2300:
+                somar[0] += i
+                somar[1] += 1
+        print("t_dist 2: ", (somar[0] / somar[1]))
+        return (somar[0] / somar[1])
+
 class andar(Thread):
     def __init__(self):
         self.andando = False
         self.parando = False
         self.vel = 200
-        self.ang = 0.2
+        self.ang = 0
+        self.ang2 = 0.2
         self.parado = False
         Thread.__init__(self)
 
     def run(self):
+        global ubL
+
         while True:
             if self.andando:
                 speed1, speed2 = self.vel, self.vel
@@ -99,27 +136,48 @@ class andar(Thread):
                         m1.run_forever(speed_sp=self.vel)
                         m2.run_forever(speed_sp=self.vel)
                     else:
-                        if Comm.ub_value < self.ang:
-                            variacao = (self.ang - Comm.ub_value)
-                            if variacao > 200:
-                                variacao = 200
+                        leitura = ubL
+
+                        if leitura > 2548:
+                            leitura = self.ang
+
+                        #tratamento da leitura
+                        #v = abs(gy.value() - self.ang2)
+                        #if v != 0:
+                        #    leitura = ubL * math.cos((1*(v/57.2958)))
+
+                        s = ""
+                        leitura = abs(leitura)
+                        if leitura < self.ang:
+                            variacao = 10*(self.ang - leitura)
+                            s += "1: " + str(variacao) + ", vels: "
+                            if variacao > 60:
+                                variacao = 60
                             if self.vel > 0:
-                                speed2 = self.vel + variacao
+                                speed2 = self.vel + (variacao/3)
                             else:
-                                speed2 = self.vel - variacao
-                        elif Comm.ub_value > self.ang:
-                            variacao = (Comm.ub_value - self.ang) 
-                            if variacao > 200:
-                                variacao = 200
+                                speed2 = self.vel - (variacao/3)
+                            speed1 = self.vel
+                            s += str(speed1) + ", " + str(speed2) + ".  ang: " + str(self.ang) + ", leitura: " + str(leitura)
+                            print(s)
+                        elif leitura > self.ang:
+                            variacao = 10*(leitura - self.ang) 
+                            s += "2: " + str(variacao) + ", vels: "
+                            if variacao > 60:
+                                variacao = 60
                             if self.vel > 0:
-                                speed1 = self.vel + variacao 
+                                speed1 = self.vel + (variacao/3)
                             else:
-                                speed1 = self.vel - variacao
+                                speed1 = self.vel - (variacao/3)
+                            speed2 = self.vel
+                            s += str(speed1) + ", " + str(speed2) + ".  ang: " + str(self.ang) + ", leitura: " + str(leitura)
+                            print(s)
                         else:
                             speed1, speed2 = self.vel, self.vel
+                            print("caiu no else")
 
-                        m1.run_forever(speed_sp=(speed2))
-                        m2.run_forever(speed_sp=(speed1))
+                        m1.run_forever(speed_sp=speed2)
+                        m2.run_forever(speed_sp=speed1)
 
                 m1.stop(stop_action="brake")
                 m2.stop(stop_action="brake")
@@ -127,15 +185,17 @@ class andar(Thread):
                 self.andando = False
                 self.parando = False
                 self.ang = 0
+                self.ang2 = 0
                 self.parado = False
 
-    def andar(self, speed = -150, dist = 0):
+    def andar(self, speed = -150, dist = 0, angulo = 0.2):
         while self.parado:
             pass
         self.andando = True
         self.parando = False
         self.vel = speed
         self.ang = dist
+        self.ang2 = angulo
 
     def parar(self):
         if self.andando:
@@ -155,6 +215,27 @@ lego = andar()
 lego.daemon = True
 lego.start()
 
+def Mov_Garra_Analog(Sentido, Pos): 
+    if Sentido:
+        m3.run_to_rel_pos(position_sp=(-1)*Pos,speed_sp=150,stop_action="brake")
+        m4.run_to_rel_pos(position_sp=Pos,speed_sp=150,stop_action="brake")
+        time.sleep(1)
+    else:
+        m3.run_to_rel_pos(position_sp=Pos,speed_sp=150,stop_action="brake")
+        m4.run_to_rel_pos(position_sp=(-1)*Pos,speed_sp=150,stop_action="brake")
+        time.sleep(1)
+
+def Cano_Suporte(pos):
+    Mov_Garra_Analog(1, 100)
+    lego.andar_tempo(speed=100, tempo=4)
+    Mov_Garra_Analog(0, 180)
+
+    time.sleep(2)
+
+    m1.run_to_rel_pos(position_sp=-pos,speed_sp=250,stop_action="brake")
+    m2.run_to_rel_pos(position_sp=-pos,speed_sp=250,stop_action="brake")
+    time.sleep(2)
+
 def Entregar_Tubo(tempo = 0, tam=0):
     lego.parar()
     if tam == 10:
@@ -165,12 +246,15 @@ def Entregar_Tubo(tempo = 0, tam=0):
         lego.andar_tempo(speed=150, tempo=(tempo - 2))
     rotateTo(90)
     print("colocando o tubo")
-    #Cano_Suporte(200)
+    Cano_Suporte(200)
     rotateTo(-90)
     lego.andar_tempo(speed=150, tempo=tempo)
 
 def c_tubo(tam_tubo):
+    global ubL
     Estado = 0
+    var_est = False
+    giro = 0.2
     while True:
         if Estado == 0: #chegar no gasoduto pela primeira vez
             print("Esperando comunicacao..")
@@ -180,52 +264,104 @@ def c_tubo(tam_tubo):
             lego.andar()
 
             print("indo ate o gasoduto")
-            while Comm.ut_value > 100:
+            while Comm.ut_value > 150:
                 print(Comm.ut_value)
 
             lego.parar()
             print("saiu do while de ir ate o gasoduto")
             rotateTo(90)
-
+            giro = int(gy.value())
             Estado = 1
             
         elif Estado == 1: #andar paralelo ao gasoduto
-            lego.andar(dist=90)
+            ubL = ub.value()
+            lego.andar(dist=150, angulo=gy.value())
 
             time_vao = 0
+            time_entrada = 0
 
             print("Entrou while procurar cano")
-            while Comm.ut_value > 90: #verificar queda dps
-                if Comm.uc_value > 200 and time_vao == 0:
+            while Comm.ut_value > 110: #verificar queda dps
+                try:
+                    ubL = ub.value()
+                except Exception as e:
+                    print(e)
+
+                if Comm.uc_value > 200 and time_entrada == 0:
                     print("Inicio tubo")
-                    time_vao = time.time()
-                elif Comm.uc_value < 200 and time_vao != 0:
-                    tempo_dif = (time.time() - time_vao)
+                    time_entrada = time.time()
+                elif Comm.uc_value < 200 and time_entrada != 0:
+                    tempo_dif = (time.time() - time_entrada)
                     if tempo_dif > 1.1:
                         if tam_tubo == 10 or (tam_tubo == 15 and tempo_dif > 2) or (tam_tubo == 20 and tempo_dif > 2.5):
-                            Entregar_Tubo(tempo=tempo_dif, tam=tam_tubo)
-                            return True
+                            print("colocou tubo")
+                            #Entregar_Tubo(tempo=tempo_dif, tam=tam_tubo)
+                            #return True
                         else:
                             print("Nao cabe", tempo_dif)
                     else:
                         print("vao falso", tempo_dif)
-                    time_vao = 0
+                    time_entrada = 0
 
-                if ir.value() > 30:
-                    lego.parar()
-                    Estado = 3
-                    break
+                if ubL > 200 and time_vao == 0:
+                    time_vao = time.time()
+                elif time_vao != 0 and (time.time() - time_vao) > 0.5:
+                    if ubL > 200 and var_est:
+                        Estado = 3
+                        print("detectou vao")
+                        break
+                    else:
+                        time_vao = 0
+
+                if Comm.ir_value > 21:
+                    pass
+                    #lego.parar()
+                    #Estado = 4
+                    #print("detectou queda")
+                    #break
+
+            if Estado == 1:
+                Estado = 2
 
             print("Saiu while procurar cano")
-            Estado = 2
 
-        elif Estado == 2: #dobrar em algum angulo
-            print("Entrou em dobrar")
+        elif Estado == 2: #dobrar a direita
+            print("Entrou em dobrar 1")
             lego.parar()
-            rotateTo(90)
-            Estado = 1
+            g = gy.value()
 
-        elif Estado == 3: #final do gasoduto e fim da funcao
+            #if giro != 0.2: #corrigir angulo
+            #    rotateTo((g - giro))
+
+            rotateTo(90)
+            giro = int(g)
+
+            Estado = 1
+            var_est = True
+
+        elif Estado == 3: #dobrar a esquerda
+            print("Entrou em dobrar 2")
+            lego.andar_tempo(speed=-150, tempo=3)
+            g = gy.value()
+
+            #if giro != 0.2:
+            #    rotateTo((g - giro))
+
+            rotateTo(-90)
+            giro = int(g)
+
+            lego.andar(dist=150, angulo=gy.value())
+            while ub.value() > 200:
+                pass
+
+            lego.parar()
+
+            Estado = 1
+            var_est = False
+            print("Saiu andar 2")
+
+        elif Estado == 4: #final do gasoduto e fim da funcao
             print("Fim da funcao")
+            return False
 
 print(c_tubo(10))
