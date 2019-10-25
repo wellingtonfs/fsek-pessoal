@@ -7,6 +7,16 @@ from threading import *
 import time
 import math
 
+from ev3dev2.motor import OUTPUT_C, OUTPUT_D, MoveTank
+
+sc = ColorSensor('in1')
+sc2 = ColorSensor('in2')
+
+sc.mode = 'COL-COLOR'
+sc2.mode = 'COL-COLOR'
+
+tank = MoveTank(OUTPUT_C, OUTPUT_D)
+
 m1 = LargeMotor('outD')
 m2 = LargeMotor('outC')
 m3 = MediumMotor('outB') #Motor mais alto
@@ -19,6 +29,105 @@ ub = UltrasonicSensor('in4')
 ub.mode = 'US-DIST-CM'
 
 ubL = 0
+
+def alinhar(c): #Essa função alinha o lego a uma cor especifica c.
+    if sc.value() == c and sc2.value() ==  c:
+        if ruido(c):
+            return True
+
+    while True:
+        print(sc.value(), sc2.value())
+        if sc.value() == c:
+            tank.stop()
+
+            while sc.value() == c:
+                tank.on(-10, -10)
+
+            tank.stop()
+            tank.on(10, 0)
+
+            while sc2.value() != c:
+                tank.on(0, 10)
+            
+            while sc2.value() == c:
+                tank.on(0, -10)
+                
+            break
+
+        if sc2.value() == c:
+            tank.stop()
+
+            while sc2.value() == c:
+                tank.on(-10, -10)
+
+            tank.stop()
+            tank.on(0, 10)
+
+            while sc.value() != c:
+                tank.on(10, 0)
+
+            while sc.value() == c:
+                tank.on(-10, 0)
+
+            break
+
+    tank.stop()
+
+    return False
+
+def ruido(color):
+    count = 0
+    for i in range(0,5):
+        print("ruido:", sc.value(), sc2.value())
+        tank.on_for_degrees(10, 10, 10)
+        if sc.value() == color or sc2.value() == color:
+            count += 1
+
+        tank.on_for_degrees(10, 10, -10)
+        if sc.value() == color or sc2.value() == color:
+            count += 1
+
+    tank.on_for_degrees(10, 10, -10)
+
+    if count > 8:
+        return True
+
+    return False
+
+def walkUntilColor(color, speed = 10, limit = 0):
+    tank.on(speed, speed)
+    count = 0
+
+    while True:
+        while sc.value() != color and sc2.value() != color:
+            count += 1
+            if(limit != 0 and count > limit):
+                return False
+
+        # se nã0 passar no ruido continua andando
+        if ruido(color):
+            break
+        else:
+            tank.on(speed, speed)
+
+    tank.stop()
+
+    print("Chegou na cor:", color)
+    return True
+
+def rotateCm(cm, speed = 15):
+    degrees = cm * 360 / 17.6
+
+    positionBase = m1.position
+
+    if(cm < 0):
+        speed = -speed
+
+    tank.on(speed, speed)
+    
+    while abs(m1.position - positionBase) <= abs(degrees):
+        pass
+    tank.stop()
 
 def rotateTo(ang):
     atual = gy.value()
@@ -250,11 +359,12 @@ def Entregar_Tubo(tempo = 0, tam=0):
     rotateTo(-90)
     lego.andar_tempo(speed=150, tempo=tempo)
 
+
+controleEstado = False
 def c_tubo(tam_tubo):
-    global ubL
-    Estado = 0
+    global ubL, controleEstado
+    Estado = 2
     var_est = False
-    giro = 0.2
     while True:
         if Estado == 0: #chegar no gasoduto pela primeira vez
             print("Esperando comunicacao..")
@@ -270,10 +380,18 @@ def c_tubo(tam_tubo):
             lego.parar()
             print("saiu do while de ir ate o gasoduto")
             rotateTo(90)
-            giro = int(gy.value())
+
+            if controleEstado:
+                walkUntilColor(0)
+                alinhar(0)
+                controleEstado = False
+
             Estado = 1
             
         elif Estado == 1: #andar paralelo ao gasoduto
+            lego.parar()
+            tank.stop()
+
             ubL = ub.value()
             lego.andar(dist=150, angulo=gy.value())
 
@@ -326,38 +444,37 @@ def c_tubo(tam_tubo):
             print("Saiu while procurar cano")
 
         elif Estado == 2: #dobrar a direita
+            
             print("Entrou em dobrar 1")
+            lego.andar_tempo(speed=-150, tempo=3)
+
             lego.parar()
-            g = gy.value()
+            tank.stop()
 
-            #if giro != 0.2: #corrigir angulo
-            #    rotateTo((g - giro))
+            rotateCm(10)
+            rotateTo(-90)
 
+            walkUntilColor(3)
+            alinhar(3)
+
+            rotateCm(-20)
             rotateTo(90)
-            giro = int(g)
 
-            Estado = 1
+            rotateCm(-45)
+            rotateTo(-90)
+
+            Estado = 0
             var_est = True
 
         elif Estado == 3: #dobrar a esquerda
-            print("Entrou em dobrar 2")
-            lego.andar_tempo(speed=-150, tempo=3)
-            g = gy.value()
-
-            #if giro != 0.2:
-            #    rotateTo((g - giro))
-
-            rotateTo(-90)
-            giro = int(g)
-
-            lego.andar(dist=150, angulo=gy.value())
-            while ub.value() > 200:
-                pass
-
             lego.parar()
+            tank.stop()
+            print("Entrou em dobrar 2")
+            
+            rotateCm(-30)
+            rotateTo(-90)
 
-            Estado = 1
-            var_est = False
+            Estado = 0 
             print("Saiu andar 2")
 
         elif Estado == 4: #final do gasoduto e fim da funcao
